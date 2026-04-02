@@ -1,1 +1,1307 @@
-<meta http-equiv="refresh" content="0; url=房貸試算工具.html">
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>房貸 · 信貸 試算工具</title>
+<style>
+  :root {
+    --primary: #1a6eb5; --primary-light: #e8f2fc; --primary-dark: #0d4f8a;
+    --accent: #e67e22; --green: #27ae60; --red: #e74c3c;
+    --bg: #f0f4f8; --card: #fff; --border: #d0dce8;
+    --text: #1e2d3d; --muted: #6b7e92;
+    --shadow: 0 1px 6px rgba(26,110,181,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); font-family: 'Segoe UI','Microsoft JhengHei',sans-serif; color: var(--text); font-size: 14px; }
+
+  /* Header — 緊湊 */
+  .header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: #fff; padding: 10px 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .header-icon { font-size: 1.4rem; }
+  .header h1 { font-size: 1.1rem; font-weight: 700; }
+  .header p { font-size: 0.75rem; opacity: 0.75; }
+
+  /* Tabs */
+  .tabs { display: flex; background: var(--primary-dark); padding: 0 20px; }
+  .tab {
+    padding: 8px 20px; cursor: pointer; color: rgba(255,255,255,0.6);
+    font-size: 0.88rem; font-weight: 600; border-bottom: 3px solid transparent;
+    transition: all 0.15s; user-select: none;
+  }
+  .tab:hover { color: #fff; }
+  .tab.active { color: #fff; border-bottom-color: var(--accent); }
+
+  /* Main */
+  .main { max-width: 1280px; margin: 0 auto; padding: 12px 16px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .grid-top { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+  .grid-top-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+
+  /* Cards */
+  .card {
+    background: var(--card); border-radius: 8px;
+    box-shadow: var(--shadow); padding: 12px 14px; border: 1px solid var(--border);
+  }
+
+  /* Card title row */
+  .card-title-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; padding-bottom: 7px;
+    border-bottom: 2px solid var(--primary-light);
+  }
+  .card-title {
+    font-size: 0.88rem; font-weight: 700; color: var(--primary);
+    display: flex; align-items: center; gap: 5px;
+    margin-bottom: 0; padding-bottom: 0; border-bottom: none;
+  }
+
+  /* Horizontal fields — 標籤左、輸入右 */
+  .field {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 6px;
+  }
+  .field label {
+    flex: 0 0 110px; font-size: 0.78rem; font-weight: 600;
+    color: var(--muted); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .field label span.req { color: var(--accent); }
+  .input-wrap { flex: 1; position: relative; }
+  .input-wrap .unit {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 0.78rem; pointer-events: none;
+  }
+  input[type=number] {
+    width: 100%; padding: 5px 30px 5px 8px;
+    border: 1.5px solid var(--border); border-radius: 6px;
+    font-size: 0.88rem; color: var(--text); background: #fafcff;
+    transition: border-color 0.15s; -moz-appearance: textfield;
+  }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input:focus { outline: none; border-color: var(--primary); background: #fff; }
+  .field-note { font-size: 0.72rem; color: var(--muted); margin-left: 116px; margin-top: -3px; margin-bottom: 4px; }
+
+  /* Result items */
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px,1fr)); gap: 8px; margin-bottom: 10px; }
+  .result-item {
+    background: var(--primary-light); border-radius: 7px;
+    padding: 8px 10px; border: 1px solid rgba(26,110,181,0.15);
+  }
+  .result-item .r-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+  .result-item .r-value { font-size: 1rem; font-weight: 700; color: var(--primary-dark); }
+  .result-item.positive .r-value { color: var(--green); }
+  .result-item.negative .r-value { color: var(--red); }
+  .result-item.accent .r-value { color: var(--accent); }
+
+  /* Summary block */
+  .summary-block {
+    background: linear-gradient(135deg,#f0f7ff,#e8f2fc);
+    border-radius: 7px; padding: 10px 12px; margin-bottom: 8px;
+    border: 1px solid rgba(26,110,181,0.2);
+  }
+  .summary-block h4 { font-size: 0.82rem; color: var(--primary-dark); margin-bottom: 6px; font-weight: 700; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(26,110,181,0.1); }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .s-label { font-size: 0.78rem; color: var(--muted); }
+  .summary-row .s-value { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+  .summary-row .s-value.pos { color: var(--green); }
+  .summary-row .s-value.neg { color: var(--red); }
+
+  /* Cashflow box */
+  .cashflow-box { border-radius: 7px; padding: 8px 12px; text-align: center; margin-bottom: 8px; }
+  .cashflow-box.pos { background: #e8f8f0; border: 1px solid #a9dfbf; }
+  .cashflow-box.neg { background: #fdf0ef; border: 1px solid #f1948a; }
+  .cashflow-box .cf-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+  .cashflow-box .cf-value { font-size: 1.25rem; font-weight: 800; }
+  .cashflow-box.pos .cf-value { color: var(--green); }
+  .cashflow-box.neg .cf-value { color: var(--red); }
+
+  /* Collapsible table */
+  .collapse-header {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--primary); color: #fff; padding: 7px 14px;
+    border-radius: 7px; cursor: pointer; margin-bottom: 0;
+    font-size: 0.85rem; font-weight: 700; user-select: none;
+    transition: background 0.15s;
+  }
+  .collapse-header:hover { background: var(--primary-dark); }
+  .collapse-header .toggle-icon { font-size: 0.75rem; opacity: 0.85; }
+  .collapse-body { display: none; margin-top: 4px; }
+  .collapse-body.open { display: block; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; max-height: 300px; overflow-y: auto; border-radius: 7px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  thead th {
+    background: var(--primary); color: #fff; padding: 7px 10px;
+    font-weight: 600; text-align: right; position: sticky; top: 0; z-index: 2;
+  }
+  thead th:first-child { text-align: center; }
+  tbody tr:nth-child(even) { background: #f7fafd; }
+  tbody tr:hover { background: var(--primary-light); }
+  tbody td { padding: 5px 10px; text-align: right; border-bottom: 1px solid #eef2f7; }
+  tbody td:first-child { text-align: center; font-weight: 600; color: var(--primary); }
+  .milestone { background: #fff8e1 !important; }
+
+  /* Strategy phase */
+  .strategy-phase { border-radius: 7px; padding: 8px 10px; margin-bottom: 7px; border-left: 3px solid var(--primary); }
+  .strategy-phase.phase-1 { background: #e8f2fc; border-left-color: var(--primary); }
+  .strategy-phase.phase-2 { background: #e8f8f0; border-left-color: var(--green); }
+  .strategy-phase.phase-3 { background: #fef9e7; border-left-color: var(--accent); }
+  .phase-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 5px; color: var(--text); }
+  .phase-row { display: flex; justify-content: space-between; font-size: 0.78rem; padding: 2px 0; color: var(--muted); }
+  .phase-row strong { color: var(--text); font-weight: 700; }
+
+  /* Scenario */
+  .scenario-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .scenario-card { border-radius: 7px; padding: 8px 10px; text-align: center; border: 1px solid; }
+  .scenario-card.base { background: #f0f7ff; border-color: #90c3f0; }
+  .scenario-card.good { background: #e8f8f0; border-color: #82d9aa; }
+  .scenario-card.bad  { background: #fdf0ef; border-color: #f1948a; }
+  .scenario-card .sc-title { font-size: 0.72rem; font-weight: 700; margin-bottom: 4px; color: var(--muted); }
+  .scenario-card .sc-value { font-size: 1rem; font-weight: 800; }
+  .scenario-card.base .sc-value { color: var(--primary); }
+  .scenario-card.good .sc-value { color: var(--green); }
+  .scenario-card.bad  .sc-value { color: var(--red); }
+  .scenario-card .sc-sub { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+  /* Section title */
+  .section-title {
+    font-size: 0.85rem; font-weight: 800; color: var(--primary-dark);
+    margin: 10px 0 6px; padding-bottom: 5px;
+    border-bottom: 2px solid var(--primary-light);
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  /* Buttons */
+  .btn-clear {
+    background: #fff; color: var(--red); border: 1.5px solid var(--red);
+    padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-clear:hover { background: var(--red); color: #fff; }
+
+  .badge {
+    display: inline-block; padding: 1px 7px; border-radius: 20px;
+    font-size: 0.68rem; font-weight: 700; margin-left: 4px;
+  }
+  .badge-grace { background: #fff3cd; color: #856404; }
+  .badge-repay { background: #d1e7dd; color: #0a3622; }
+
+  @media (max-width: 900px) {
+    .grid-top, .grid-3 { grid-template-columns: 1fr 1fr; }
+    .grid-top-2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .grid-top, .grid-3, .grid-2, .grid-top-2, .scenario-grid { grid-template-columns: 1fr; }
+    .field label { flex: 0 0 90px; }
+  }
+
+  /* 語言切換按鈕 */
+  .btn-lang {
+    margin-left: auto; background: rgba(255,255,255,0.18); color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.55); border-radius: 6px;
+    padding: 4px 12px; font-size: 0.82rem; font-weight: 800;
+    cursor: pointer; letter-spacing: 1px; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-lang:hover { background: rgba(255,255,255,0.32); }
+
+  /* ── 第三方案：多重貸款配息 ─────────────────────── */
+  .test-badge {
+    display: inline-block; background: #7c3aed; color: #fff;
+    font-size: 0.62rem; font-weight: 800; padding: 1px 5px;
+    border-radius: 4px; margin-left: 4px; letter-spacing: 0.5px; vertical-align: middle;
+  }
+
+  /* 區塊標頭（貸款/配息 各自的標題列） */
+  .multi-block { margin-bottom: 10px; }
+  .multi-block-header {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--primary-light); border-radius: 7px 7px 0 0;
+    padding: 7px 12px; border: 1px solid var(--border); border-bottom: none;
+  }
+  .multi-block-title { font-size: 0.88rem; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 6px; }
+  .multi-block-body { border: 1px solid var(--border); border-radius: 0 0 7px 7px; background: #fff; padding: 8px 10px; }
+
+  /* +/- 按鈕 */
+  .btn-pm {
+    width: 26px; height: 26px; border-radius: 50%; border: none; cursor: pointer;
+    font-size: 1rem; font-weight: 700; line-height: 1; display: inline-flex;
+    align-items: center; justify-content: center; transition: all 0.15s;
+  }
+  .btn-plus  { background: var(--green); color: #fff; }
+  .btn-plus:hover  { background: #1e8449; }
+  .btn-minus { background: #e0e6ee; color: var(--muted); }
+  .btn-minus:hover { background: var(--red); color: #fff; }
+
+  /* 欄標題 */
+  .multi-col-head {
+    display: grid; align-items: center; gap: 6px;
+    padding: 4px 6px; font-size: 0.72rem; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px;
+    border-bottom: 1px solid var(--border); margin-bottom: 4px;
+  }
+  .loan-col-head  { grid-template-columns: 22px 2fr 58px 50px 44px 90px 28px; }
+  .div-col-head   { grid-template-columns: 22px 1fr 80px 100px 28px; }
+
+  /* 每一筆資料列 */
+  .multi-row {
+    display: grid; align-items: center; gap: 6px;
+    padding: 5px 6px; border-radius: 6px; margin-bottom: 4px;
+    background: #f7fafd; border: 1px solid #e8eef6; transition: background 0.1s;
+  }
+  .multi-row:hover { background: var(--primary-light); }
+  .loan-row { grid-template-columns: 22px 2fr 58px 50px 44px 90px 28px; }
+  .div-row  { grid-template-columns: 22px 1fr 80px 100px 28px; }
+
+  .row-num {
+    text-align: center; font-size: 0.75rem; font-weight: 700;
+    color: var(--primary); background: var(--primary-light);
+    border-radius: 4px; padding: 2px 0;
+  }
+  .multi-input {
+    width: 100%; padding: 4px 6px; border: 1.5px solid var(--border);
+    border-radius: 5px; font-size: 0.82rem; color: var(--text);
+    background: #fff; -moz-appearance: textfield;
+  }
+  .multi-input::-webkit-outer-spin-button, .multi-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .multi-input:focus { outline: none; border-color: var(--primary); }
+  .multi-input.optional { border-style: dashed; }
+
+  /* 模式切換按鈕 */
+  .btn-mode {
+    font-size: 0.7rem; font-weight: 700; padding: 3px 6px;
+    border-radius: 5px; border: 1.5px solid; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap; width: 100%;
+  }
+  .btn-mode.interest { background: #fff8e1; color: #b7791f; border-color: #f6c648; }
+  .btn-mode.interest:hover { background: #f6c648; color: #fff; }
+  .btn-mode.amort    { background: #e8f8f0; color: #1e6f40; border-color: #82d9aa; }
+  .btn-mode.amort:hover { background: #27ae60; color: #fff; }
+
+  /* 列結果 */
+  .row-result {
+    font-size: 0.78rem; font-weight: 700; text-align: right;
+    color: var(--primary-dark); white-space: nowrap;
+  }
+  .row-result.pos { color: var(--green); }
+
+  /* 刪除按鈕 */
+  .btn-del {
+    width: 22px; height: 22px; border-radius: 4px; border: none;
+    background: #fee2e2; color: var(--red); cursor: pointer; font-size: 0.9rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .btn-del:hover { background: var(--red); color: #fff; }
+
+  /* 總計 Summary bar */
+  .summary-bar {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr));
+    gap: 8px; margin: 10px 0;
+  }
+  .summary-bar-item {
+    background: #fff; border-radius: 8px; padding: 10px 12px;
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .summary-bar-item .sb-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); margin-bottom: 3px; }
+  .summary-bar-item .sb-value { font-size: 1.05rem; font-weight: 800; color: var(--primary-dark); }
+  .summary-bar-item.pos .sb-value { color: var(--green); }
+  .summary-bar-item.neg .sb-value { color: var(--red); }
+
+  /* 分項明細表（多重方案） */
+  .detail-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 4px; }
+  .detail-table th { background: var(--primary-light); color: var(--primary-dark); padding: 5px 8px; text-align: left; font-size: 0.72rem; font-weight: 700; border-bottom: 1px solid var(--border); }
+  .detail-table td { padding: 5px 8px; border-bottom: 1px solid #eef2f7; }
+  .detail-table tr:last-child td { border-bottom: none; font-weight: 700; background: #f0f7ff; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">🏠</div>
+  <div style="flex:1;">
+    <h1 data-i18n="app_title">房貸 · 信貸 試算工具</h1>
+    <p data-i18n="app_subtitle">整合配息基金策略，輕鬆規劃您的財務計畫</p>
+  </div>
+  <button class="btn-lang" id="btn_lang" onclick="toggleLang()">EN</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('mortgage')" data-i18n="tab_mortgage">🏠 房貸方案</div>
+  <div class="tab" onclick="switchTab('loan')" data-i18n="tab_loan">💳 信貸方案</div>
+  <div class="tab" onclick="switchTab('multi')"><span data-i18n="tab_multi">🧪 多重貸款配息</span><span class="test-badge">TEST</span></div>
+</div>
+
+<div class="main">
+
+  <!-- ========== 房貸方案 ========== -->
+  <div id="panel-mortgage" class="panel active">
+
+    <!-- 第一排：三欄輸入 -->
+    <div class="grid-top">
+      <!-- 原貸款資料 -->
+      <div class="card">
+        <div class="card-title-row">
+          <div class="card-title" data-i18n="m_title">🏦 原有房貸資料</div>
+          <button class="btn-clear" id="btn_m_toggle" onclick="toggleMortgage(this)" data-i18n="btn_clear_example">清除範例</button>
+        </div>
+        <div class="field"><label data-i18n="m_loan_amt">原本貸款金額</label><div class="input-wrap"><input type="number" id="m_loan" value="16000000" oninput="calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+        <div class="field"><label data-i18n="m_loan_years">貸款年限</label><div class="input-wrap"><input type="number" id="m_years" value="30" oninput="calcMortgage()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
+        <div class="field"><label data-i18n="m_grace">寬限期</label><div class="input-wrap"><input type="number" id="m_grace" value="3" oninput="calcMortgage()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
+        <div class="field"><label data-i18n="m_rate">原貸款年利率</label><div class="input-wrap"><input type="number" id="m_rate" value="1.9" step="0.01" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+      </div>
+
+      <!-- 增貸投資 -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px; padding-bottom:7px; border-bottom:2px solid var(--primary-light);" data-i18n="m_invest_title">📈 增貸 · 投資計畫</div>
+        <div class="field"><label data-i18n="m_value">房屋市值預估</label><div class="input-wrap"><input type="number" id="m_value" value="38000000" oninput="calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+        <div class="field"><label data-i18n="m_ltv">可貸成數</label><div class="input-wrap"><input type="number" id="m_ltv" value="80" step="1" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="m_new_rate">新貸款利率</label><div class="input-wrap"><input type="number" id="m_new_rate" value="2.07" step="0.01" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="m_div_rate">年化配息率</label><div class="input-wrap"><input type="number" id="m_div_rate" value="8" step="0.1" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="m_repay_other">清償其他貸款</label><div class="input-wrap"><input type="number" id="m_repay_other" value="0" oninput="calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+        <div class="field"><label data-i18n="m_reserve">預留預備金</label><div class="input-wrap"><input type="number" id="m_reserve" value="0" oninput="calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+      </div>
+
+      <!-- 現金流 + 分期明細 -->
+      <div>
+        <div class="cashflow-box pos" id="m_cf1_box" style="margin-bottom:6px;">
+          <div class="cf-label" data-i18n="m_cf1_label">💰 寬限期每月現金流（配息 − 利息）</div>
+          <div class="cf-value" id="m_cf1">＋ $0</div>
+        </div>
+        <div class="cashflow-box neg" id="m_cf2_box" style="margin-bottom:6px;">
+          <div class="cf-label" data-i18n="m_cf2_label">💰 還本期每月現金流（配息 − 本利）</div>
+          <div class="cf-value" id="m_cf2">− $0</div>
+        </div>
+        <div id="m_payment_detail"></div>
+      </div>
+    </div>
+
+    <!-- 試算結果 -->
+    <div class="result-grid" id="m_results"></div>
+
+    <!-- 攤還表（折疊） -->
+    <div class="collapse-header" onclick="toggleCollapse('m_table','m_toggle')">
+      <span data-i18n="m_table_title">📋 攤還表（整合後房貸）</span>
+      <span class="toggle-icon" id="m_toggle" data-i18n="expand">▶ 點擊展開</span>
+    </div>
+    <div class="collapse-body" id="m_table">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="text-align:center;" data-i18n="th_period">期數</th>
+            <th data-i18n="th_balance">貸款餘額（元）</th><th data-i18n="th_interest">支付利息（元）</th>
+            <th data-i18n="th_principal">償還本金（元）</th><th data-i18n="th_payment">月付金額（元）</th>
+            <th data-i18n="th_dividend">基金配息（元）</th><th data-i18n="th_netcf">淨現金流（元）</th>
+          </tr></thead>
+          <tbody id="m_amort_body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 信貸方案 ========== -->
+  <div id="panel-loan" class="panel">
+
+    <!-- 第一排：兩欄輸入 + 結果 -->
+    <div class="grid-top">
+      <!-- 信貸資料 -->
+      <div class="card">
+        <div class="card-title-row">
+          <div class="card-title" data-i18n="l_title">💳 信貸資料</div>
+          <button class="btn-clear" id="btn_l_toggle" onclick="toggleLoan(this)" data-i18n="btn_clear_example">清除範例</button>
+        </div>
+        <div class="field"><label data-i18n="l_loan_amt">信貸金額</label><div class="input-wrap"><input type="number" id="l_loan" value="10000000" oninput="calcLoan()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+        <div class="field"><label data-i18n="l_months">還款期數</label><div class="input-wrap"><input type="number" id="l_months" value="84" oninput="calcLoan()"><span class="unit" data-i18n="unit_mo">月</span></div></div>
+        <div class="field"><label data-i18n="l_grace">寬限期</label><div class="input-wrap"><input type="number" id="l_grace" value="0" oninput="calcLoan()"><span class="unit" data-i18n="unit_mo">月</span></div></div>
+        <div class="field"><label data-i18n="l_rate">年利率</label><div class="input-wrap"><input type="number" id="l_rate" value="3" step="0.01" oninput="calcLoan()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="l_fee">手續費</label><div class="input-wrap"><input type="number" id="l_fee" value="0" oninput="calcLoan()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+      </div>
+
+      <!-- 配息投資 -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px; padding-bottom:7px; border-bottom:2px solid var(--primary-light);" data-i18n="l_invest_title">📈 配息基金投資</div>
+        <div class="field"><label data-i18n="l_invest_amt">投入配息金額</label><div class="input-wrap"><input type="number" id="l_invest" value="10000000" oninput="calcLoan()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+        <div class="field-note" data-i18n="l_invest_note">通常等於信貸金額</div>
+        <div class="field"><label data-i18n="l_div_rate">年化配息率</label><div class="input-wrap"><input type="number" id="l_div_rate" value="8" step="0.1" oninput="calcLoan()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="l_refi">借新還舊（年末）</label><div class="input-wrap"><input type="number" id="l_refi_yr" value="3" oninput="calcLoan()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
+        <div class="field-note" data-i18n="l_refi_note">重新貸款取得現金，追加投入基金</div>
+      </div>
+
+      <!-- 分階段計畫 -->
+      <div>
+        <div class="section-title" style="margin-top:0;" data-i18n="l_phases_title">🗓️ 分階段計畫</div>
+        <div id="l_phases"></div>
+      </div>
+    </div>
+
+    <!-- 試算結果 -->
+    <div class="result-grid" id="l_results"></div>
+
+    <!-- 情境分析 -->
+    <div id="l_scenarios"></div>
+
+    <!-- 攤還表（折疊） -->
+    <div class="collapse-header" onclick="toggleCollapse('l_table','l_toggle')">
+      <span data-i18n="l_table_title">📋 每月攤還明細</span>
+      <span class="toggle-icon" id="l_toggle" data-i18n="expand">▶ 點擊展開</span>
+    </div>
+    <div class="collapse-body" id="l_table">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="text-align:center;" data-i18n="th_period">期數</th>
+            <th data-i18n="th_balance">貸款餘額（元）</th><th data-i18n="th_interest">支付利息（元）</th>
+            <th data-i18n="th_principal">償還本金（元）</th><th data-i18n="th_payment">月付金額（元）</th>
+            <th data-i18n="th_dividend">基金配息（元）</th><th data-i18n="th_netcf">淨現金流（元）</th>
+          </tr></thead>
+          <tbody id="l_amort_body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 多重貸款配息方案 ========== -->
+  <div id="panel-multi" class="panel">
+    <div class="grid-2" style="margin-bottom:10px;">
+
+      <!-- 貸款資料 -->
+      <div>
+        <div class="multi-block">
+          <div class="multi-block-header">
+            <div class="multi-block-title" data-i18n="multi_loan_title">🏦 貸款資料</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button class="btn-clear" onclick="clearLoanRows()" style="padding:3px 10px;" data-i18n="btn_clear">清除</button>
+              <button class="btn-pm btn-minus" onclick="removeLoanRow()" data-i18n-title="tip_remove" title="移除最後一筆">－</button>
+              <button class="btn-pm btn-plus"  onclick="addLoanRow()"    data-i18n-title="tip_add"    title="新增一筆">＋</button>
+            </div>
+          </div>
+          <div class="multi-block-body">
+            <div class="multi-col-head loan-col-head">
+              <span>#</span><span data-i18n="col_loan_amt">貸款金額（元）</span><span data-i18n="col_rate">利率%</span>
+              <span data-i18n="col_months">期數月</span><span data-i18n="col_mode">模式</span><span style="text-align:right;" data-i18n="col_monthly_pay">月付金</span><span></span>
+            </div>
+            <div id="multi_loans"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 配息資料 -->
+      <div>
+        <div class="multi-block">
+          <div class="multi-block-header">
+            <div class="multi-block-title" data-i18n="multi_div_title">📈 配息資料</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button class="btn-clear" onclick="clearDivRows()" style="padding:3px 10px;" data-i18n="btn_clear">清除</button>
+              <button class="btn-pm btn-minus" onclick="removeDivRow()"  data-i18n-title="tip_remove" title="移除最後一筆">－</button>
+              <button class="btn-pm btn-plus"  onclick="addDivRow()"     data-i18n-title="tip_add"    title="新增一筆">＋</button>
+            </div>
+          </div>
+          <div class="multi-block-body">
+            <div class="multi-col-head div-col-head">
+              <span>#</span><span data-i18n="col_invest_amt">投入配息金額（元）</span><span data-i18n="col_div_rate">年化配息率%</span>
+              <span style="text-align:right;" data-i18n="col_monthly_div">每月配息</span><span></span>
+            </div>
+            <div id="multi_divs"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 總計 Summary -->
+    <div class="summary-bar" id="multi_summary"></div>
+
+    <!-- 分項明細 -->
+    <div class="grid-2">
+      <div>
+        <div class="section-title" data-i18n="multi_loan_detail">🏦 貸款分項明細</div>
+        <div id="multi_loan_detail"></div>
+      </div>
+      <div>
+        <div class="section-title" data-i18n="multi_div_detail">📈 配息分項明細</div>
+        <div id="multi_div_detail"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ─── i18n ──────────────────────────────────────────────────────────────────
+let lang = 'zh';
+const i18n = {
+  zh: {
+    app_title:'房貸 · 信貸 試算工具', app_subtitle:'整合配息基金策略，輕鬆規劃您的財務計畫',
+    tab_mortgage:'🏠 房貸方案', tab_loan:'💳 信貸方案', tab_multi:'🧪 多重貸款配息',
+    m_title:'🏦 原有房貸資料', btn_clear_example:'清除範例', btn_restore_example:'恢復範例',
+    m_loan_amt:'原本貸款金額', m_loan_years:'貸款年限', m_grace:'寬限期', m_rate:'原貸款年利率',
+    m_invest_title:'📈 增貸 · 投資計畫', m_value:'房屋市值預估', m_ltv:'可貸成數',
+    m_new_rate:'新貸款利率', m_div_rate:'年化配息率', m_repay_other:'清償其他貸款', m_reserve:'預留預備金',
+    m_cf1_label:'💰 寬限期每月現金流（配息 − 利息）', m_cf2_label:'💰 還本期每月現金流（配息 − 本利）',
+    m_table_title:'📋 攤還表（整合後房貸）',
+    expand:'▶ 點擊展開', collapse:'▼ 收合',
+    th_period:'期數', th_balance:'貸款餘額（元）', th_interest:'支付利息（元）',
+    th_principal:'償還本金（元）', th_payment:'月付金額（元）', th_dividend:'基金配息（元）', th_netcf:'淨現金流（元）',
+    unit_twd:'元', unit_yr:'年', unit_mo:'月',
+    l_title:'💳 信貸資料', l_loan_amt:'信貸金額', l_months:'還款期數', l_grace:'寬限期',
+    l_rate:'年利率', l_fee:'手續費', l_invest_title:'📈 配息基金投資',
+    l_invest_amt:'投入配息金額', l_invest_note:'通常等於信貸金額', l_div_rate:'年化配息率',
+    l_refi:'借新還舊（年末）', l_refi_note:'重新貸款取得現金，追加投入基金',
+    l_phases_title:'🗓️ 分階段計畫', l_table_title:'📋 每月攤還明細',
+    multi_loan_title:'🏦 貸款資料', multi_div_title:'📈 配息資料',
+    btn_clear:'清除', tip_remove:'移除最後一筆', tip_add:'新增一筆',
+    col_loan_amt:'貸款金額（元）', col_rate:'利率%', col_months:'期數月', col_mode:'模式',
+    col_monthly_pay:'月付金', col_invest_amt:'投入配息金額（元）', col_div_rate:'年化配息率%', col_monthly_div:'每月配息',
+    multi_loan_detail:'🏦 貸款分項明細', multi_div_detail:'📈 配息分項明細',
+    mode_interest:'還利', mode_amort:'均攤',
+    r_add_loan:'可增貸金額', r_total_loan:'總貸款金額', r_invest_amt:'投入基金金額',
+    r_monthly_div:'每月基金配息', r_grace_pay:'寬限期月付（利息）', r_repay_pay:'還本期月付（本利）',
+    r_monthly_pay:'月付金（還本期）', r_net_monthly:'配息後淨支出',
+    ph1_pre:'第一階段：第 1 月 ─ 第', ph1_suf:'月', ph_pay:'每月繳款', ph_div:'每月配息收入',
+    ph_net:'淨支出 / 盈餘', ph2_pre:'第', ph2_suf:'月起：借新還舊，追加投資',
+    ph_cash:'取得現金追加基金', ph_fund:'基金淨值（放大後）', ph_new_div:'新月配息', ph_new_net:'新淨支出 / 盈餘',
+    ph3_suf:'月起：第二次借新還舊', ph_cash2:'再取得現金', ph_fund2:'基金淨值（再放大）',
+    sc_stats:'計畫統計表', sc_total_paid:'貸款期間總繳款金額（從口袋付出）', sc_fund_suf:'年後基金價值',
+    sc_base:'本金不賺不賠', sc_good:'📈 本金獲利 20%', sc_bad:'📉 本金虧損 20%',
+    sc_profit:'預期總獲利', sc_opt:'樂觀情境總獲利', sc_pes:'保守情境總獲利',
+    pd_pre:'🏦 原貸 ', pd_mid:'% ／ 整合後 ',
+    pd_grace:'寬限期月付（純利息）', pd_repay:'還本期月付（本+利）', pd_addl:'可增貸金額', pd_invest:'投入基金金額',
+    sb_total_loan:'🏦 總貸款金額', sb_monthly_loan:'💸 月付貸款合計', sb_annual_int:'💸 年付利息合計',
+    sb_invest:'📈 總投入配息金額', sb_monthly_div:'💰 月配息合計',
+    sb_net_monthly:'📊 每月淨現金流', sb_net_annual:'📊 年度淨現金流', sb_yield:'🎯 整體年化報酬率',
+    td_loan:'貸款金額', td_rate:'利率', td_mode:'模式', td_monthly_pay:'月付金', td_annual_int:'年利息',
+    td_invest:'投入金額', td_div_rate:'配息率', td_monthly_div:'月配息', td_annual_div:'年配息',
+    td_total:'合計', no_loan:'尚未新增貸款資料', no_div:'尚未新增配息資料',
+    badge_grace:'寬限', badge_repay:'還本', badge_refi:'借新還舊',
+    mo_sfx:'/月', yr_sfx:'/年',
+  },
+  en: {
+    app_title:'Mortgage · Loan Calculator', app_subtitle:'Integrated dividend fund strategy for financial planning',
+    tab_mortgage:'🏠 Mortgage', tab_loan:'💳 Personal Loan', tab_multi:'🧪 Multi-Loan',
+    m_title:'🏦 Original Mortgage', btn_clear_example:'Clear Example', btn_restore_example:'Restore Example',
+    m_loan_amt:'Loan Amount', m_loan_years:'Loan Term', m_grace:'Grace Period', m_rate:'Annual Rate',
+    m_invest_title:'📈 Additional Loan · Investment', m_value:'Property Value', m_ltv:'LTV Ratio',
+    m_new_rate:'New Loan Rate', m_div_rate:'Dividend Rate', m_repay_other:'Repay Other Loans', m_reserve:'Cash Reserve',
+    m_cf1_label:'💰 Grace Period Monthly CF (Div − Interest)', m_cf2_label:'💰 Repayment Monthly CF (Div − P+I)',
+    m_table_title:'📋 Amortization Table',
+    expand:'▶ Expand', collapse:'▼ Collapse',
+    th_period:'Period', th_balance:'Balance', th_interest:'Interest',
+    th_principal:'Principal', th_payment:'Payment', th_dividend:'Dividend', th_netcf:'Net CF',
+    unit_twd:'TWD', unit_yr:'Yr', unit_mo:'Mo',
+    l_title:'💳 Loan Data', l_loan_amt:'Loan Amount', l_months:'Term (mo.)', l_grace:'Grace Period',
+    l_rate:'Annual Rate', l_fee:'Handling Fee', l_invest_title:'📈 Dividend Fund',
+    l_invest_amt:'Invested Amount', l_invest_note:'Usually equals loan amount', l_div_rate:'Dividend Rate',
+    l_refi:'Refinance (yr end)', l_refi_note:'Refinance to get cash & reinvest in fund',
+    l_phases_title:'🗓️ Phase Plan', l_table_title:'📋 Monthly Amortization',
+    multi_loan_title:'🏦 Loan Data', multi_div_title:'📈 Dividend Data',
+    btn_clear:'Clear', tip_remove:'Remove last', tip_add:'Add new',
+    col_loan_amt:'Loan Amount', col_rate:'Rate%', col_months:'Months', col_mode:'Mode',
+    col_monthly_pay:'Monthly', col_invest_amt:'Invested Amount', col_div_rate:'Div Rate%', col_monthly_div:'Monthly Div',
+    multi_loan_detail:'🏦 Loan Breakdown', multi_div_detail:'📈 Dividend Breakdown',
+    mode_interest:'Int.', mode_amort:'P+I',
+    r_add_loan:'Additional Loan', r_total_loan:'Total Loan', r_invest_amt:'Fund Investment',
+    r_monthly_div:'Monthly Dividend', r_grace_pay:'Grace Payment (Int.)', r_repay_pay:'Repayment (P+I)',
+    r_monthly_pay:'Monthly Payment', r_net_monthly:'Net Monthly Cost',
+    ph1_pre:'Phase 1: Month 1 –', ph1_suf:'', ph_pay:'Monthly Payment', ph_div:'Monthly Dividend',
+    ph_net:'Net / Surplus', ph2_pre:'From Month', ph2_suf:': Refinance & Reinvest',
+    ph_cash:'Cash Added to Fund', ph_fund:'Fund Value (Grown)', ph_new_div:'New Monthly Div', ph_new_net:'New Net / Surplus',
+    ph3_suf:': 2nd Refinance', ph_cash2:'Additional Cash', ph_fund2:'Fund Value (Grown Again)',
+    sc_stats:'Plan Statistics', sc_total_paid:'Total Loan Payments', sc_fund_suf:'Yr Final Fund Value',
+    sc_base:'Break Even', sc_good:'📈 +20% Return', sc_bad:'📉 −20% Return',
+    sc_profit:'Expected Profit', sc_opt:'Optimistic Profit', sc_pes:'Conservative Profit',
+    pd_pre:'🏦 Orig ', pd_mid:'% / New ',
+    pd_grace:'Grace Payment (Int.)', pd_repay:'Repayment (P+I)', pd_addl:'Additional Loan', pd_invest:'Fund Investment',
+    sb_total_loan:'🏦 Total Loan', sb_monthly_loan:'💸 Monthly Payment', sb_annual_int:'💸 Annual Interest',
+    sb_invest:'📈 Total Invested', sb_monthly_div:'💰 Monthly Div',
+    sb_net_monthly:'📊 Net Monthly CF', sb_net_annual:'📊 Net Annual CF', sb_yield:'🎯 Overall Yield',
+    td_loan:'Amount', td_rate:'Rate', td_mode:'Mode', td_monthly_pay:'Monthly', td_annual_int:'Annual Int.',
+    td_invest:'Invested', td_div_rate:'Div Rate', td_monthly_div:'Monthly', td_annual_div:'Annual',
+    td_total:'Total', no_loan:'No loan entries yet', no_div:'No dividend entries yet',
+    badge_grace:'Grace', badge_repay:'P+I', badge_refi:'Refi',
+    mo_sfx:'/mo', yr_sfx:'/yr',
+  }
+};
+
+function t(key) { return (i18n[lang] && i18n[lang][key]) || i18n.zh[key] || key; }
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    el.title = t(el.getAttribute('data-i18n-title'));
+  });
+  // 重新算以更新動態內容
+  calcMortgage(); calcLoan(); calcMulti();
+  // 同步 toggle 按鈕狀態文字
+  if (mortgageCleared) document.getElementById('btn_m_toggle').textContent = t('btn_restore_example');
+  if (loanCleared)     document.getElementById('btn_l_toggle').textContent = t('btn_restore_example');
+  // 更新 mode 按鈕
+  loanRows.forEach(row => {
+    const btn = document.getElementById(`lbtn_${row.id}`);
+    if (btn) btn.textContent = row.interestOnly ? t('mode_interest') : t('mode_amort');
+  });
+}
+
+function toggleLang() {
+  lang = lang === 'zh' ? 'en' : 'zh';
+  document.getElementById('btn_lang').textContent = lang === 'zh' ? 'EN' : '中文';
+  setLang(lang);
+}
+
+// ─── Utility ───────────────────────────────────────────────────────────────
+function fmt(n, dec=0) {
+  if (!isFinite(n)) return '−';
+  return n.toLocaleString('zh-TW', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+function fmtMoney(n) {
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '−' : '+';
+  return (n < 0 ? '−' : '+') + ' $' + fmt(abs);
+}
+function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+// PMT = P * r / (1 - (1+r)^-n)
+function pmt(P, r, n) {
+  if (r === 0) return P / n;
+  return P * r / (1 - Math.pow(1 + r, -n));
+}
+
+// Remaining balance after k payments
+function balance(P, r, n, k) {
+  if (r === 0) return P - (P / n) * k;
+  return P * (Math.pow(1 + r, n) - Math.pow(1 + r, k)) / (Math.pow(1 + r, n) - 1);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ─── 房貸方案 ─────────────────────────────────────────────────────────────
+function calcMortgage() {
+  const origLoan   = v('m_loan');
+  const years      = v('m_years');
+  const gracYears  = v('m_grace');
+  const origRate   = v('m_rate') / 100;
+  const mktVal     = v('m_value');
+  const ltv        = v('m_ltv') / 100;
+  const newRate    = v('m_new_rate') / 100;
+  const divRate    = v('m_div_rate') / 100;
+  const repayOther = v('m_repay_other');
+  const reserve    = v('m_reserve');
+
+  const totalMonths = years * 12;
+  const graceMonths = gracYears * 12;
+  const repayMonths = totalMonths - graceMonths;
+
+  // 可增貸金額
+  const maxLoan    = mktVal * ltv;
+  const addlLoan   = Math.max(0, maxLoan - origLoan);
+
+  // 整合後總貸款 (refinance: 原貸 + 增貸，重新計算)
+  const totalLoan  = origLoan + addlLoan;
+  const mNewRate   = newRate / 12;
+
+  // 寬限期月付 = 只付利息
+  const gracePayment = totalLoan * mNewRate;
+  // 還本期月付
+  const repayPayment = pmt(totalLoan, mNewRate, repayMonths);
+
+  // 投入基金
+  const invest     = addlLoan - repayOther - reserve;
+  const monthlyDiv = invest > 0 ? invest * divRate / 12 : 0;
+
+  // 現金流
+  const cf_grace   = monthlyDiv - gracePayment;
+  const cf_repay   = monthlyDiv - repayPayment;
+
+  // 原貸款 (原利率) 月付參考
+  const mOrigRate  = origRate / 12;
+  const origGrace  = origLoan * mOrigRate;
+  const origRepay  = pmt(origLoan, mOrigRate, repayMonths);
+
+  // Results display
+  document.getElementById('m_results').innerHTML = `
+    <div class="result-item"><div class="r-label">${t('r_add_loan')}</div><div class="r-value">$${fmt(addlLoan)}</div></div>
+    <div class="result-item"><div class="r-label">${t('r_total_loan')}</div><div class="r-value">$${fmt(totalLoan)}</div></div>
+    <div class="result-item"><div class="r-label">${t('r_invest_amt')}</div><div class="r-value">$${fmt(invest)}</div></div>
+    <div class="result-item positive"><div class="r-label">${t('r_monthly_div')}</div><div class="r-value">$${fmt(monthlyDiv)}</div></div>
+    <div class="result-item"><div class="r-label">${t('r_grace_pay')}</div><div class="r-value">$${fmt(gracePayment)}</div></div>
+    <div class="result-item"><div class="r-label">${t('r_repay_pay')}</div><div class="r-value">$${fmt(repayPayment)}</div></div>
+  `;
+
+  const box1 = document.getElementById('m_cf1_box');
+  const box2 = document.getElementById('m_cf2_box');
+  box1.className = 'cashflow-box ' + (cf_grace >= 0 ? 'pos' : 'neg');
+  box2.className = 'cashflow-box ' + (cf_repay >= 0 ? 'pos' : 'neg');
+  document.getElementById('m_cf1').textContent = fmtMoney(cf_grace) + t('mo_sfx');
+  document.getElementById('m_cf2').textContent = fmtMoney(cf_repay) + t('mo_sfx');
+
+  document.getElementById('m_payment_detail').innerHTML = `
+    <div class="summary-block" style="margin:0;">
+      <h4>${t('pd_pre')}${(origRate*100).toFixed(2)}${t('pd_mid')}${(newRate*100).toFixed(2)}%</h4>
+      <div class="summary-row"><span class="s-label">${t('pd_grace')}</span><span class="s-value">$${fmt(gracePayment)}</span></div>
+      <div class="summary-row"><span class="s-label">${t('pd_repay')}</span><span class="s-value">$${fmt(repayPayment)}</span></div>
+      <div class="summary-row"><span class="s-label">${t('pd_addl')}</span><span class="s-value pos">$${fmt(addlLoan)}</span></div>
+      <div class="summary-row"><span class="s-label">${t('pd_invest')}</span><span class="s-value pos">$${fmt(invest)}</span></div>
+    </div>
+  `;
+
+  let rows = '';
+  let bal = totalLoan;
+  const MAX_ROWS = 360;
+  for (let i = 1; i <= Math.min(totalMonths, MAX_ROWS); i++) {
+    const isGrace = i <= graceMonths;
+    const interest = bal * mNewRate;
+    let principal = 0, payment = 0;
+    if (isGrace) { payment = interest; principal = 0; }
+    else { payment = repayPayment; principal = payment - interest; }
+    bal = Math.max(0, bal - principal);
+    const netCF = monthlyDiv - payment;
+    const isMilestone = (i % 12 === 0) || i === 1;
+    rows += `<tr class="${isMilestone ? 'milestone' : ''}">
+      <td>${i}<span class="badge ${isGrace ? 'badge-grace' : 'badge-repay'}">${isGrace ? t('badge_grace') : t('badge_repay')}</span></td>
+      <td>$${fmt(bal)}</td><td>$${fmt(interest)}</td><td>$${fmt(principal)}</td>
+      <td>$${fmt(payment)}</td>
+      <td>${invest > 0 ? '$' + fmt(monthlyDiv) : '−'}</td>
+      <td style="color:${netCF>=0?'var(--green)':'var(--red)'}; font-weight:700;">${fmtMoney(netCF)}</td>
+    </tr>`;
+  }
+  document.getElementById('m_amort_body').innerHTML = rows;
+}
+
+// ─── 信貸方案 ─────────────────────────────────────────────────────────────
+function calcLoan() {
+  const P        = v('l_loan');
+  const months   = v('l_months');
+  const grace    = v('l_grace');
+  const rate     = v('l_rate') / 100;
+  const fee      = v('l_fee');
+  const invest   = v('l_invest');
+  const divRate  = v('l_div_rate') / 100;
+  const refiYr   = v('l_refi_yr');
+  const refiMo   = refiYr * 12;
+
+  const mr       = rate / 12;
+  const repayMo  = months - grace;
+
+  // Monthly payment during grace: interest only
+  const gracePayment = P * mr;
+  // After grace: PMT on full principal (standard personal loan)
+  const repayPayment = mr > 0 ? pmt(P, mr, months) : P / months;
+
+  // Monthly dividend
+  const monthlyDiv = invest * divRate / 12;
+  const netMonthly = repayPayment - monthlyDiv; // net out-of-pocket
+
+  // Refinance at refiYr
+  // Balance at refiMo after grace
+  let balAtRefi = 0;
+  {
+    let b = P;
+    for (let i = 1; i <= Math.min(refiMo, months); i++) {
+      const intr = b * mr;
+      if (i <= grace) {
+        // grace: interest only
+      } else {
+        b = Math.max(0, b - (repayPayment - intr));
+      }
+    }
+    balAtRefi = b;
+  }
+
+  const cashFromRefi  = P - balAtRefi;  // borrow new P, repay remaining balAtRefi
+  const fundAfterRefi = invest + cashFromRefi; // add cash to fund
+  const divAfterRefi  = fundAfterRefi * divRate / 12;
+  const netAfterRefi  = repayPayment - divAfterRefi;
+
+  // Second refinance: new fresh loan of P at refiMo, so balance at refiMo is same as first refi
+  const refiMo2 = refiYr * 2 * 12;
+  // Fresh loan started at refiMo → after another refiMo months, balance = balAtRefi (same terms)
+  const balAtRefi2  = balAtRefi;
+  const cashFromRefi2  = P - balAtRefi2;
+  const fundAfterRefi2 = fundAfterRefi + cashFromRefi2;
+  const divAfterRefi2  = fundAfterRefi2 * divRate / 12;
+  const netAfterRefi2  = repayPayment - divAfterRefi2;
+
+  // Total paid
+  let totalPaid = fee;
+  {
+    let b = P;
+    for (let i = 1; i <= months; i++) {
+      const intr = b * mr;
+      if (i <= grace) { totalPaid += intr; }
+      else {
+        totalPaid += repayPayment;
+        b = Math.max(0, b - (repayPayment - intr));
+      }
+    }
+  }
+
+  // Results
+  document.getElementById('l_results').innerHTML = `
+    <div class="result-item"><div class="r-label">${t('r_monthly_pay')}</div><div class="r-value">$${fmt(repayPayment)}</div></div>
+    <div class="result-item positive"><div class="r-label">${t('r_monthly_div')}</div><div class="r-value">$${fmt(monthlyDiv)}</div></div>
+    <div class="result-item ${netMonthly>=0?'negative':'positive'}"><div class="r-label">${t('r_net_monthly')}</div><div class="r-value">${netMonthly>=0 ? '−' : '+'} $${fmt(Math.abs(netMonthly))}</div></div>
+    <div class="result-item"><div class="r-label">${refiYr}${t('unit_yr')} ${t('badge_refi')} ${t('th_balance')}</div><div class="r-value">$${fmt(balAtRefi)}</div></div>
+    <div class="result-item accent"><div class="r-label">${refiYr}${t('unit_yr')} ${t('ph_cash')}</div><div class="r-value">$${fmt(cashFromRefi)}</div></div>
+    <div class="result-item positive"><div class="r-label">${refiYr}${t('unit_yr')} ${t('ph_new_div')}</div><div class="r-value">$${fmt(divAfterRefi)}</div></div>
+    <div class="result-item"><div class="r-label">${t('sc_total_paid')}</div><div class="r-value">$${fmt(totalPaid)}</div></div>
+    <div class="result-item positive"><div class="r-label">${t('ph_fund2')}</div><div class="r-value">$${fmt(fundAfterRefi2)}</div></div>
+  `;
+
+  // Phases
+  document.getElementById('l_phases').innerHTML = `
+    <div class="strategy-phase phase-1">
+      <div class="phase-title">📅 ${t('ph1_pre')} ${refiMo} ${t('ph1_suf')}</div>
+      <div class="phase-row"><span>${t('ph_pay')}</span><strong>$${fmt(grace > 0 ? gracePayment : repayPayment)}</strong></div>
+      <div class="phase-row"><span>${t('ph_div')}</span><strong>$${fmt(monthlyDiv)}</strong></div>
+      <div class="phase-row"><span>${t('ph_net')}</span><strong style="color:${netMonthly>=0?'var(--red)':'var(--green)'};">${fmtMoney(-netMonthly)} ${t('mo_sfx')}</strong></div>
+    </div>
+    <div class="strategy-phase phase-2">
+      <div class="phase-title">🔄 ${t('ph2_pre')} ${refiMo+1} ${t('ph2_suf')}</div>
+      <div class="phase-row"><span>${t('ph_cash')}</span><strong>$${fmt(cashFromRefi)}</strong></div>
+      <div class="phase-row"><span>${t('ph_fund')}</span><strong>$${fmt(fundAfterRefi)}</strong></div>
+      <div class="phase-row"><span>${t('ph_new_div')}</span><strong style="color:var(--green);">$${fmt(divAfterRefi)}</strong></div>
+      <div class="phase-row"><span>${t('ph_new_net')}</span><strong style="color:${netAfterRefi>=0?'var(--red)':'var(--green)'};">${fmtMoney(-netAfterRefi)} ${t('mo_sfx')}</strong></div>
+    </div>
+    <div class="strategy-phase phase-3">
+      <div class="phase-title">🏆 ${t('ph2_pre')} ${refiMo2+1} ${t('ph3_suf')}</div>
+      <div class="phase-row"><span>${t('ph_cash2')}</span><strong>$${fmt(cashFromRefi2)}</strong></div>
+      <div class="phase-row"><span>${t('ph_fund2')}</span><strong>$${fmt(fundAfterRefi2)}</strong></div>
+      <div class="phase-row"><span>${t('ph_new_div')}</span><strong style="color:var(--green);">$${fmt(divAfterRefi2)}</strong></div>
+      <div class="phase-row"><span>${t('ph_net')}</span><strong style="color:${netAfterRefi2>=0?'var(--red)':'var(--green)'};">${fmtMoney(-netAfterRefi2)} ${t('mo_sfx')}</strong></div>
+    </div>
+  `;
+
+  // Scenarios
+  const profit_base = fundAfterRefi2 - totalPaid;
+  const profit_good = fundAfterRefi2 * 1.2 - totalPaid;
+  const profit_bad  = fundAfterRefi2 * 0.8 - totalPaid;
+  document.getElementById('l_scenarios').innerHTML = `
+    <div class="summary-block">
+      <h4>${t('sc_stats')}</h4>
+      <div class="summary-row"><span class="s-label">${t('sc_total_paid')}</span><span class="s-value neg">$${fmt(totalPaid)}</span></div>
+      <div class="summary-row"><span class="s-label">${months/12}${t('sc_fund_suf')}</span><span class="s-value pos">$${fmt(fundAfterRefi2)}</span></div>
+    </div>
+    <div class="scenario-grid">
+      <div class="scenario-card base">
+        <div class="sc-title">${t('sc_base')}</div>
+        <div class="sc-value">$${fmt(profit_base)}</div>
+        <div class="sc-sub">${t('sc_profit')}</div>
+      </div>
+      <div class="scenario-card good">
+        <div class="sc-title">${t('sc_good')}</div>
+        <div class="sc-value">$${fmt(profit_good)}</div>
+        <div class="sc-sub">${t('sc_opt')}</div>
+      </div>
+      <div class="scenario-card bad">
+        <div class="sc-title">${t('sc_bad')}</div>
+        <div class="sc-value">$${fmt(profit_bad)}</div>
+        <div class="sc-sub">${t('sc_pes')}</div>
+      </div>
+    </div>
+  `;
+
+  // Amortization
+  let rows = '';
+  let bal = P;
+  let curDiv = monthlyDiv;
+  let curFund = invest;
+  for (let i = 1; i <= months; i++) {
+    const isGrace = i <= grace;
+    const interest = bal * mr;
+    let principal = 0, payment = 0;
+    if (isGrace) { payment = gracePayment; principal = 0; }
+    else { payment = repayPayment; principal = Math.min(payment - interest, bal); }
+    bal = Math.max(0, bal - principal);
+
+    // Refi events
+    if (i === refiMo) {
+      curFund = fundAfterRefi;
+      curDiv = divAfterRefi;
+    }
+    if (i === refiMo2) {
+      curFund = fundAfterRefi2;
+      curDiv = divAfterRefi2;
+    }
+
+    const netCF = curDiv - payment;
+    const isMilestone = (i % 12 === 0) || i === 1;
+    const isRefi = (i === refiMo || i === refiMo2);
+    rows += `<tr class="${isMilestone ? 'milestone' : ''}">
+      <td>${i}${isRefi ? `<span class="badge badge-grace">${t('badge_refi')}</span>` : ''}</td>
+      <td>$${fmt(bal)}</td>
+      <td>$${fmt(interest)}</td>
+      <td>$${fmt(principal)}</td>
+      <td>$${fmt(payment)}</td>
+      <td>$${fmt(curDiv)}</td>
+      <td style="color:${netCF>=0?'var(--green)':'var(--red)'}; font-weight:700;">${fmtMoney(netCF)}</td>
+    </tr>`;
+  }
+  document.getElementById('l_amort_body').innerHTML = rows;
+}
+
+// 範例預設值
+const MORTGAGE_DEFAULTS = {
+  m_loan: '16000000', m_years: '30', m_grace: '3', m_rate: '1.9',
+  m_value: '38000000', m_ltv: '80', m_new_rate: '2.07', m_div_rate: '8',
+  m_repay_other: '0', m_reserve: '0'
+};
+const LOAN_DEFAULTS = {
+  l_loan: '10000000', l_months: '84', l_grace: '0', l_rate: '3',
+  l_fee: '0', l_invest: '10000000', l_div_rate: '8', l_refi_yr: '3'
+};
+
+let mortgageCleared = false;
+let loanCleared = false;
+
+function toggleMortgage(btn) {
+  if (!mortgageCleared) {
+    // 清除
+    Object.keys(MORTGAGE_DEFAULTS).forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('m_results').innerHTML = '';
+    document.getElementById('m_cf1').textContent = '＋ $0';
+    document.getElementById('m_cf2').textContent = '− $0';
+    document.getElementById('m_payment_detail').innerHTML = '';
+    document.getElementById('m_amort_body').innerHTML = '';
+    btn.textContent = t('btn_restore_example');
+    btn.style.borderColor = 'var(--green)';
+    btn.style.color = 'var(--green)';
+    btn.onmouseover = () => { btn.style.background='var(--green)'; btn.style.color='#fff'; };
+    btn.onmouseout  = () => { btn.style.background='#fff'; btn.style.color='var(--green)'; };
+    mortgageCleared = true;
+  } else {
+    // 恢復
+    Object.entries(MORTGAGE_DEFAULTS).forEach(([id, val]) => { document.getElementById(id).value = val; });
+    calcMortgage();
+    btn.textContent = t('btn_clear_example');
+    btn.style.borderColor = 'var(--red)';
+    btn.style.color = 'var(--red)';
+    btn.onmouseover = () => { btn.style.background='var(--red)'; btn.style.color='#fff'; };
+    btn.onmouseout  = () => { btn.style.background='#fff'; btn.style.color='var(--red)'; };
+    mortgageCleared = false;
+  }
+}
+
+function toggleLoan(btn) {
+  if (!loanCleared) {
+    // 清除
+    Object.keys(LOAN_DEFAULTS).forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('l_results').innerHTML = '';
+    document.getElementById('l_phases').innerHTML = '';
+    document.getElementById('l_scenarios').innerHTML = '';
+    document.getElementById('l_amort_body').innerHTML = '';
+    btn.textContent = t('btn_restore_example');
+    btn.style.borderColor = 'var(--green)';
+    btn.style.color = 'var(--green)';
+    btn.onmouseover = () => { btn.style.background='var(--green)'; btn.style.color='#fff'; };
+    btn.onmouseout  = () => { btn.style.background='#fff'; btn.style.color='var(--green)'; };
+    loanCleared = true;
+  } else {
+    // 恢復
+    Object.entries(LOAN_DEFAULTS).forEach(([id, val]) => { document.getElementById(id).value = val; });
+    calcLoan();
+    btn.textContent = t('btn_clear_example');
+    btn.style.borderColor = 'var(--red)';
+    btn.style.color = 'var(--red)';
+    btn.onmouseover = () => { btn.style.background='var(--red)'; btn.style.color='#fff'; };
+    btn.onmouseout  = () => { btn.style.background='#fff'; btn.style.color='var(--red)'; };
+    loanCleared = false;
+  }
+}
+
+// ─── 多重貸款配息方案 ──────────────────────────────────────────────────────
+let loanRows = [];  // {id, interestOnly}
+let divRows  = [];
+let loanIdSeq = 0, divIdSeq = 0;
+
+function loanRowHTML(id, num) {
+  return `
+  <div class="multi-row loan-row" id="lr_${id}">
+    <div class="row-num">${num}</div>
+    <input class="multi-input" type="number" placeholder="貸款金額" id="la_${id}" oninput="calcMulti()">
+    <input class="multi-input" type="number" placeholder="利率" step="0.1" id="lr_rate_${id}" oninput="calcMulti()">
+    <input class="multi-input optional" type="number" placeholder="選填" id="lm_${id}" oninput="calcMulti()" title="不填 = 只還利息模式">
+    <button class="btn-mode interest" id="lbtn_${id}" onclick="toggleLoanMode(${id})" title="切換還款模式">${t('mode_interest')}</button>
+    <div class="row-result" id="lres_${id}">—</div>
+    <button class="btn-del" onclick="deleteLoanRow(${id})" title="刪除此筆">✕</button>
+  </div>`;
+}
+
+function divRowHTML(id, num) {
+  return `
+  <div class="multi-row div-row" id="dr_${id}">
+    <div class="row-num">${num}</div>
+    <input class="multi-input" type="number" placeholder="投入金額" id="da_${id}" oninput="calcMulti()">
+    <input class="multi-input" type="number" placeholder="配息率" step="0.1" id="dr_rate_${id}" oninput="calcMulti()">
+    <div class="row-result pos" id="dres_${id}">—</div>
+    <button class="btn-del" onclick="deleteDivRow(${id})" title="刪除此筆">✕</button>
+  </div>`;
+}
+
+function addLoanRow() {
+  const id = ++loanIdSeq;
+  loanRows.push({ id, interestOnly: true });
+  document.getElementById('multi_loans').insertAdjacentHTML('beforeend', loanRowHTML(id, loanRows.length));
+  calcMulti();
+}
+
+function removeLoanRow() {
+  if (loanRows.length === 0) return;
+  const last = loanRows.pop();
+  const el = document.getElementById(`lr_${last.id}`);
+  if (el) el.remove();
+  reNumberRows('multi_loans', 'lr_');
+  calcMulti();
+}
+
+function deleteLoanRow(id) {
+  loanRows = loanRows.filter(r => r.id !== id);
+  const el = document.getElementById(`lr_${id}`);
+  if (el) el.remove();
+  reNumberRows('multi_loans', 'lr_');
+  calcMulti();
+}
+
+function addDivRow() {
+  const id = ++divIdSeq;
+  divRows.push({ id });
+  document.getElementById('multi_divs').insertAdjacentHTML('beforeend', divRowHTML(id, divRows.length));
+  calcMulti();
+}
+
+function removeDivRow() {
+  if (divRows.length === 0) return;
+  const last = divRows.pop();
+  const el = document.getElementById(`dr_${last.id}`);
+  if (el) el.remove();
+  reNumberRows('multi_divs', 'dr_');
+  calcMulti();
+}
+
+function deleteDivRow(id) {
+  divRows = divRows.filter(r => r.id !== id);
+  const el = document.getElementById(`dr_${id}`);
+  if (el) el.remove();
+  reNumberRows('multi_divs', 'dr_');
+  calcMulti();
+}
+
+function reNumberRows(containerId, prefix) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let n = 1;
+  container.querySelectorAll('.row-num').forEach(el => { el.textContent = n++; });
+}
+
+function toggleLoanMode(id) {
+  const row = loanRows.find(r => r.id === id);
+  if (!row) return;
+  row.interestOnly = !row.interestOnly;
+  const btn = document.getElementById(`lbtn_${id}`);
+  if (row.interestOnly) {
+    btn.textContent = t('mode_interest'); btn.className = 'btn-mode interest';
+  } else {
+    btn.textContent = t('mode_amort'); btn.className = 'btn-mode amort';
+  }
+  calcMulti();
+}
+
+function calcMulti() {
+  let totalLoanAmt = 0, totalMonthlyLoan = 0, totalAnnualInterest = 0;
+  let loanDetailRows = '';
+
+  // 計算每筆貸款
+  loanRows.forEach(row => {
+    const id = row.id;
+    const amount  = parseFloat(document.getElementById(`la_${id}`)?.value) || 0;
+    const rateAnn = parseFloat(document.getElementById(`lr_rate_${id}`)?.value) || 0;
+    const months  = parseFloat(document.getElementById(`lm_${id}`)?.value) || 0;
+    const mr = rateAnn / 100 / 12;
+
+    totalLoanAmt += amount;
+
+    let monthlyPay = 0, modeLabel = '';
+    const mInput = document.getElementById(`lm_${id}`);
+    const hasMonths = mInput && mInput.value.trim() !== '' && months > 0;
+
+    // 如果使用者填了期數且按鈕不是只還利息，才本利均攤
+    if (hasMonths && !row.interestOnly) {
+      monthlyPay = amount > 0 && mr > 0 ? pmt(amount, mr, months) : (amount / months);
+      modeLabel = `${t('mode_amort')} ${months}${t('unit_mo')}`;
+    } else {
+      // 只還利息
+      monthlyPay = amount * mr;
+      modeLabel = t('mode_interest');
+    }
+
+    const annualInterest = amount * rateAnn / 100;
+    totalAnnualInterest += annualInterest;
+    totalMonthlyLoan += monthlyPay;
+
+    const res = document.getElementById(`lres_${id}`);
+    if (res) res.textContent = amount > 0 ? `$${fmt(monthlyPay)}${t('mo_sfx')}` : '—';
+
+    loanDetailRows += `<tr>
+      <td>${loanRows.indexOf(row) + 1}</td>
+      <td>$${fmt(amount)}</td>
+      <td>${rateAnn}%</td>
+      <td>${modeLabel}</td>
+      <td style="text-align:right; color:var(--red);">$${fmt(monthlyPay)}${t('mo_sfx')}</td>
+      <td style="text-align:right; color:var(--red);">$${fmt(annualInterest)}${t('yr_sfx')}</td>
+    </tr>`;
+  });
+
+  // 計算每筆配息
+  let totalDivAmt = 0, totalMonthlyDiv = 0;
+  let divDetailRows = '';
+
+  divRows.forEach(row => {
+    const id = row.id;
+    const amount  = parseFloat(document.getElementById(`da_${id}`)?.value) || 0;
+    const rateAnn = parseFloat(document.getElementById(`dr_rate_${id}`)?.value) || 0;
+    const monthly = amount * rateAnn / 100 / 12;
+    totalDivAmt    += amount;
+    totalMonthlyDiv += monthly;
+
+    const res = document.getElementById(`dres_${id}`);
+    if (res) res.textContent = amount > 0 ? `$${fmt(monthly)}${t('mo_sfx')}` : '—';
+
+    divDetailRows += `<tr>
+      <td>${divRows.indexOf(row) + 1}</td>
+      <td>$${fmt(amount)}</td>
+      <td>${rateAnn}%</td>
+      <td style="text-align:right; color:var(--green);">$${fmt(monthly)}${t('mo_sfx')}</td>
+      <td style="text-align:right; color:var(--green);">$${fmt(amount * rateAnn / 100)}${t('yr_sfx')}</td>
+    </tr>`;
+  });
+
+  const netMonthly    = totalMonthlyDiv - totalMonthlyLoan;
+  const netAnnual     = netMonthly * 12;
+  const overallYield  = totalLoanAmt > 0 ? (netAnnual / totalLoanAmt * 100) : 0;
+
+  // Summary bar
+  document.getElementById('multi_summary').innerHTML = `
+    <div class="summary-bar-item">
+      <div class="sb-label">${t('sb_total_loan')}</div>
+      <div class="sb-value">$${fmt(totalLoanAmt)}</div>
+    </div>
+    <div class="summary-bar-item">
+      <div class="sb-label">${t('sb_monthly_loan')}</div>
+      <div class="sb-value" style="color:var(--red);">$${fmt(totalMonthlyLoan)}${t('mo_sfx')}</div>
+    </div>
+    <div class="summary-bar-item">
+      <div class="sb-label">${t('sb_annual_int')}</div>
+      <div class="sb-value" style="color:var(--red);">$${fmt(totalAnnualInterest)}${t('yr_sfx')}</div>
+    </div>
+    <div class="summary-bar-item">
+      <div class="sb-label">${t('sb_invest')}</div>
+      <div class="sb-value">$${fmt(totalDivAmt)}</div>
+    </div>
+    <div class="summary-bar-item pos">
+      <div class="sb-label">${t('sb_monthly_div')}</div>
+      <div class="sb-value">$${fmt(totalMonthlyDiv)}${t('mo_sfx')}</div>
+    </div>
+    <div class="summary-bar-item ${netMonthly >= 0 ? 'pos' : 'neg'}">
+      <div class="sb-label">${t('sb_net_monthly')}</div>
+      <div class="sb-value">${netMonthly >= 0 ? '+' : ''}$${fmt(netMonthly)}${t('mo_sfx')}</div>
+    </div>
+    <div class="summary-bar-item ${netAnnual >= 0 ? 'pos' : 'neg'}">
+      <div class="sb-label">${t('sb_net_annual')}</div>
+      <div class="sb-value">${netAnnual >= 0 ? '+' : ''}$${fmt(netAnnual)}${t('yr_sfx')}</div>
+    </div>
+    <div class="summary-bar-item ${overallYield >= 0 ? 'pos' : 'neg'}">
+      <div class="sb-label">${t('sb_yield')}</div>
+      <div class="sb-value">${overallYield >= 0 ? '+' : ''}${overallYield.toFixed(2)}%</div>
+    </div>
+  `;
+
+  // 貸款分項明細
+  document.getElementById('multi_loan_detail').innerHTML = loanRows.length === 0
+    ? `<div style="color:var(--muted);font-size:0.82rem;padding:8px;">${t('no_loan')}</div>`
+    : `<table class="detail-table">
+        <thead><tr><th>#</th><th>${t('td_loan')}</th><th>${t('td_rate')}</th><th>${t('td_mode')}</th><th>${t('td_monthly_pay')}</th><th>${t('td_annual_int')}</th></tr></thead>
+        <tbody>${loanDetailRows}
+          <tr><td colspan="4" style="text-align:right;">${t('td_total')}</td>
+            <td style="text-align:right; color:var(--red);">$${fmt(totalMonthlyLoan)}${t('mo_sfx')}</td>
+            <td style="text-align:right; color:var(--red);">$${fmt(totalAnnualInterest)}${t('yr_sfx')}</td>
+          </tr>
+        </tbody>
+      </table>`;
+
+  // 配息分項明細
+  document.getElementById('multi_div_detail').innerHTML = divRows.length === 0
+    ? `<div style="color:var(--muted);font-size:0.82rem;padding:8px;">${t('no_div')}</div>`
+    : `<table class="detail-table">
+        <thead><tr><th>#</th><th>${t('td_invest')}</th><th>${t('td_div_rate')}</th><th>${t('td_monthly_div')}</th><th>${t('td_annual_div')}</th></tr></thead>
+        <tbody>${divDetailRows}
+          <tr><td colspan="3" style="text-align:right;">${t('td_total')}</td>
+            <td style="text-align:right; color:var(--green);">$${fmt(totalMonthlyDiv)}${t('mo_sfx')}</td>
+            <td style="text-align:right; color:var(--green);">$${fmt(totalMonthlyDiv * 12)}${t('yr_sfx')}</td>
+          </tr>
+        </tbody>
+      </table>`;
+}
+
+function clearLoanRows() {
+  loanRows.forEach(row => {
+    const id = row.id;
+    ['la_', 'lr_rate_', 'lm_'].forEach(prefix => {
+      const el = document.getElementById(prefix + id);
+      if (el) el.value = '';
+    });
+    // 重置模式回「還利」
+    row.interestOnly = true;
+    const btn = document.getElementById(`lbtn_${id}`);
+    if (btn) { btn.textContent = t('mode_interest'); btn.className = 'btn-mode interest'; }
+    const res = document.getElementById(`lres_${id}`);
+    if (res) res.textContent = '—';
+  });
+  calcMulti();
+}
+
+function clearDivRows() {
+  divRows.forEach(row => {
+    const id = row.id;
+    ['da_', 'dr_rate_'].forEach(prefix => {
+      const el = document.getElementById(prefix + id);
+      if (el) el.value = '';
+    });
+    const res = document.getElementById(`dres_${id}`);
+    if (res) res.textContent = '—';
+  });
+  calcMulti();
+}
+
+// 初始加入各一筆
+addLoanRow();
+addDivRow();
+
+function toggleCollapse(bodyId, iconId) {
+  const body = document.getElementById(bodyId);
+  const icon = document.getElementById(iconId);
+  const isOpen = body.classList.toggle('open');
+  icon.textContent = isOpen ? t('collapse') : t('expand');
+}
+
+// Init
+calcMortgage();
+calcLoan();
+</script>
+</body>
+</html>
