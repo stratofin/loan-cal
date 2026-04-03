@@ -119,6 +119,127 @@
   /* Cashflow box */
   .cashflow-box { border-radius: 7px; padding: 8px 12px; text-align: center; margin-bottom: 8px; }
   .cashflow-box.pos { background: #e8f8f0; border: 1px solid #a9dfbf; }
+  .cashflow-box.neg { background: #fdf0ef; border: 1px solid #f1948a; }<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>房貸 · 信貸 試算工具</title>
+<style>
+  :root {
+    --primary: #1a6eb5; --primary-light: #e8f2fc; --primary-dark: #0d4f8a;
+    --accent: #e67e22; --green: #27ae60; --red: #e74c3c;
+    --bg: #f0f4f8; --card: #fff; --border: #d0dce8;
+    --text: #1e2d3d; --muted: #6b7e92;
+    --shadow: 0 1px 6px rgba(26,110,181,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); font-family: 'Segoe UI','Microsoft JhengHei',sans-serif; color: var(--text); font-size: 14px; }
+
+  /* Header — 緊湊 */
+  .header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: #fff; padding: 10px 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .header-icon { font-size: 1.4rem; }
+  .header h1 { font-size: 1.1rem; font-weight: 700; }
+  .header p { font-size: 0.75rem; opacity: 0.75; }
+
+  /* Tabs */
+  .tabs { display: flex; background: var(--primary-dark); padding: 0 20px; }
+  .tab {
+    padding: 8px 20px; cursor: pointer; color: rgba(255,255,255,0.6);
+    font-size: 0.88rem; font-weight: 600; border-bottom: 3px solid transparent;
+    transition: all 0.15s; user-select: none;
+  }
+  .tab:hover { color: #fff; }
+  .tab.active { color: #fff; border-bottom-color: var(--accent); }
+
+  /* Main */
+  .main { max-width: 1280px; margin: 0 auto; padding: 12px 16px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .grid-top { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+  .grid-top-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+
+  /* Cards */
+  .card {
+    background: var(--card); border-radius: 8px;
+    box-shadow: var(--shadow); padding: 12px 14px; border: 1px solid var(--border);
+  }
+
+  /* Card title row */
+  .card-title-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; padding-bottom: 7px;
+    border-bottom: 2px solid var(--primary-light);
+  }
+  .card-title {
+    font-size: 0.88rem; font-weight: 700; color: var(--primary);
+    display: flex; align-items: center; gap: 5px;
+    margin-bottom: 0; padding-bottom: 0; border-bottom: none;
+  }
+
+  /* Horizontal fields — 標籤左、輸入右 */
+  .field {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 6px;
+  }
+  .field label {
+    flex: 0 0 110px; font-size: 0.78rem; font-weight: 600;
+    color: var(--muted); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .field label span.req { color: var(--accent); }
+  .input-wrap { flex: 1; position: relative; }
+  .input-wrap .unit {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 0.78rem; pointer-events: none;
+  }
+  input[type=number] {
+    width: 100%; padding: 5px 30px 5px 8px;
+    border: 1.5px solid var(--border); border-radius: 6px;
+    font-size: 0.88rem; color: var(--text); background: #fafcff;
+    transition: border-color 0.15s; -moz-appearance: textfield;
+  }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input:focus { outline: none; border-color: var(--primary); background: #fff; }
+  .field-note { font-size: 0.72rem; color: var(--muted); margin-left: 116px; margin-top: -3px; margin-bottom: 4px; }
+
+  /* Result items */
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px,1fr)); gap: 8px; margin-bottom: 10px; }
+  .result-item {
+    background: var(--primary-light); border-radius: 7px;
+    padding: 8px 10px; border: 1px solid rgba(26,110,181,0.15);
+  }
+  .result-item .r-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+  .result-item .r-value { font-size: 1rem; font-weight: 700; color: var(--primary-dark); }
+  .result-item.positive .r-value { color: var(--green); }
+  .result-item.negative .r-value { color: var(--red); }
+  .result-item.accent .r-value { color: var(--accent); }
+
+  /* Summary block */
+  .summary-block {
+    background: linear-gradient(135deg,#f0f7ff,#e8f2fc);
+    border-radius: 7px; padding: 10px 12px; margin-bottom: 8px;
+    border: 1px solid rgba(26,110,181,0.2);
+  }
+  .summary-block h4 { font-size: 0.82rem; color: var(--primary-dark); margin-bottom: 6px; font-weight: 700; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(26,110,181,0.1); }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .s-label { font-size: 0.78rem; color: var(--muted); }
+  .summary-row .s-value { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+  .summary-row .s-value.pos { color: var(--green); }
+  .summary-row .s-value.neg { color: var(--red); }
+
+  /* Cashflow box */
+  .cashflow-box { border-radius: 7px; padding: 8px 12px; text-align: center; margin-bottom: 8px; }
+  .cashflow-box.pos { background: #e8f8f0; border: 1px solid #a9dfbf; }
   .cashflow-box.neg { background: #fdf0ef; border: 1px solid #f1948a; }
   .cashflow-box .cf-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
   .cashflow-box .cf-value { font-size: 1.25rem; font-weight: 800; }
@@ -678,7 +799,7 @@
 </div>
 
 <!-- PDF 輸出模板（隱藏） -->
-<div id="pdf-template" style="display:none;position:fixed;top:-9999px;left:-9999px;width:190mm;background:#fff;padding:0;"></div>
+<div id="pdf-template" style="display:none;position:absolute;top:0;left:-9999px;width:190mm;background:#fff;padding:0;"></div>
 
 <script>
 // ─── i18n ──────────────────────────────────────────────────────────────────
@@ -1661,7 +1782,7 @@ function exportPDF() {
     margin: [10, 10, 10, 10],
     filename: `${fileNames[panelId]}_${dateStr.replace(/\//g,'')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
+    html2canvas: { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0, windowWidth: 794 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   }).from(el).save().then(() => {
     el.style.display = 'none';
