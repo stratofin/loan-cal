@@ -323,16 +323,98 @@
   .detail-table th { background: var(--primary-light); color: var(--primary-dark); padding: 5px 8px; text-align: left; font-size: 0.72rem; font-weight: 700; border-bottom: 1px solid var(--border); }
   .detail-table td { padding: 5px 8px; border-bottom: 1px solid #eef2f7; }
   .detail-table tr:last-child td { border-bottom: none; font-weight: 700; background: #f0f7ff; }
+  /* Header 小按鈕（⚙️ 💾）*/
+  .btn-header-icon {
+    background: rgba(255,255,255,0.18); color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.55); border-radius: 6px;
+    padding: 4px 10px; font-size: 0.9rem;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap; line-height: 1;
+  }
+  .btn-header-icon:hover { background: rgba(255,255,255,0.32); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.48);
+    z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal-box {
+    background: #fff; border-radius: 12px; width: 100%; max-width: 500px;
+    max-height: 88vh; overflow-y: auto; box-shadow: 0 10px 50px rgba(0,0,0,0.28);
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1.5px solid var(--border);
+    position: sticky; top: 0; background: #fff; z-index: 2;
+  }
+  .modal-header h3 { font-size: 0.95rem; font-weight: 800; color: var(--primary-dark); }
+  .modal-close { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--muted); padding: 4px 8px; border-radius: 4px; }
+  .modal-close:hover { background: var(--primary-light); }
+  .modal-body { padding: 16px 18px; }
+  .modal-section-title {
+    font-size: 0.82rem; font-weight: 800; color: var(--primary);
+    margin: 14px 0 8px; padding-bottom: 5px; border-bottom: 2px solid var(--primary-light);
+  }
+  .modal-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .modal-field label { font-size: 0.75rem; font-weight: 700; color: var(--muted); }
+  .modal-input {
+    width: 100%; padding: 7px 10px; border: 1.5px solid var(--border);
+    border-radius: 6px; font-size: 0.88rem; color: var(--text); background: #fafcff;
+  }
+  .modal-input:focus { outline: none; border-color: var(--primary); }
+  .modal-textarea {
+    width: 100%; padding: 7px 10px; border: 1.5px solid var(--border);
+    border-radius: 6px; font-size: 0.82rem; color: var(--text);
+    resize: vertical; min-height: 72px; font-family: inherit; background: #fafcff;
+  }
+  .modal-textarea:focus { outline: none; border-color: var(--primary); }
+  .btn-primary {
+    background: var(--primary); color: #fff; border: none;
+    padding: 8px 18px; border-radius: 7px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary {
+    background: #fff; color: var(--muted); border: 1.5px solid var(--border);
+    padding: 8px 14px; border-radius: 7px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  }
+  .btn-secondary:hover { background: var(--bg); }
+  #logo-preview-img { max-height: 52px; max-width: 140px; border-radius: 5px; border: 1px solid var(--border); padding: 3px; margin-top: 6px; object-fit: contain; display: none; }
+
+  /* Plan items */
+  .plan-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; background: #f7fafd; border: 1px solid var(--border);
+    border-radius: 7px; margin-bottom: 6px;
+  }
+  .plan-item-info { flex: 1; min-width: 0; }
+  .plan-item-name { font-size: 0.88rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .plan-item-meta { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+  .plan-tag { font-size: 0.65rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: var(--primary-light); color: var(--primary); }
+  .btn-load { background: var(--primary); color: #fff; border: none; padding: 4px 10px; border-radius: 5px; font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .btn-load:hover { background: var(--primary-dark); }
+
+  /* PDF 匯出按鈕 */
+  .btn-pdf {
+    background: rgba(255,255,255,0.18); color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.55); border-radius: 6px;
+    padding: 4px 12px; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.5px; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-pdf:hover { background: rgba(255,255,255,0.32); }
+  .btn-pdf:active { transform: scale(0.96); }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-icon">🏠</div>
+  <div class="header-icon" id="brand-icon-area">🏠</div>
   <div style="flex:1;">
-    <h1 data-i18n="app_title">房貸 · 信貸 試算工具</h1>
+    <h1 id="header-title" data-i18n="app_title">房貸 · 信貸 試算工具</h1>
     <p data-i18n="app_subtitle">整合配息基金策略，輕鬆規劃您的財務計畫</p>
   </div>
+  <button class="btn-header-icon" onclick="openPlans()" title="儲存/載入方案">💾</button>
+  <button class="btn-header-icon" onclick="openSettings()" title="品牌設定">⚙️</button>
+  <button class="btn-pdf" id="btn_pdf" onclick="exportPDF()">📥 PDF</button>
   <button class="btn-lang" id="btn_lang" onclick="toggleLang()">EN</button>
 </div>
 
@@ -535,6 +617,69 @@
 
 </div><!-- /main -->
 
+<!-- ⚙️ 品牌設定 Modal -->
+<div id="modal-settings" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>⚙️ 品牌客製化設定</h3>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section-title">🏢 公司資訊</div>
+      <div class="modal-field">
+        <label>公司 / 品牌名稱</label>
+        <input class="modal-input" type="text" id="brand-name-input" placeholder="例：XXX 財務顧問有限公司">
+      </div>
+      <div class="modal-field">
+        <label>公司 Logo（PNG / JPG，建議長寬比 3:1）</label>
+        <input type="file" id="brand-logo-input" accept="image/*" onchange="handleLogoUpload(this)">
+        <img id="logo-preview-img">
+        <button class="btn-secondary" id="btn-remove-logo" style="display:none;margin-top:6px;font-size:0.75rem;padding:4px 10px;" onclick="removeLogo()">✕ 移除 Logo</button>
+      </div>
+
+      <div class="modal-section-title">⚠️ 自訂免責聲明</div>
+      <div class="modal-field">
+        <label>中文免責聲明（留空使用預設）</label>
+        <textarea class="modal-textarea" id="brand-disclaimer-zh" placeholder="自訂中文免責聲明文字…"></textarea>
+      </div>
+      <div class="modal-field">
+        <label>English Disclaimer (leave blank for default)</label>
+        <textarea class="modal-textarea" id="brand-disclaimer-en" placeholder="Custom English disclaimer…"></textarea>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+        <button class="btn-primary" onclick="saveSettings()">💾 儲存設定</button>
+        <button class="btn-secondary" onclick="resetSettings()">↩ 重設預設</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 💾 方案管理 Modal -->
+<div id="modal-plans" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closePlans()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>💾 方案管理</h3>
+      <button class="modal-close" onclick="closePlans()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section-title">💾 儲存目前方案</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <input class="modal-input" type="text" id="plan-name-input" placeholder="輸入方案名稱…" style="flex:1;" onkeydown="if(event.key==='Enter')doSavePlan()">
+        <button class="btn-primary" onclick="doSavePlan()">儲存</button>
+      </div>
+
+      <div class="modal-section-title">📂 已儲存方案</div>
+      <div id="plans-list-container">
+        <div style="color:var(--muted);font-size:0.82rem;text-align:center;padding:16px;">尚未儲存任何方案</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF 輸出模板（隱藏） -->
+<div id="pdf-template" style="display:none;position:fixed;top:-9999px;left:-9999px;width:190mm;background:#fff;padding:0;"></div>
+
 <script>
 // ─── i18n ──────────────────────────────────────────────────────────────────
 let lang = 'zh';
@@ -583,6 +728,13 @@ const i18n = {
     td_total:'合計', no_loan:'尚未新增貸款資料', no_div:'尚未新增配息資料',
     badge_grace:'寬限', badge_repay:'還本', badge_refi:'借新還舊',
     mo_sfx:'/月', yr_sfx:'/年',
+    pdf_company_prompt:'請輸入公司 / 品牌名稱（可留空，留空使用預設標題）：',
+    pdf_params:'試算參數', pdf_results:'試算結果', pdf_date:'試算日期',
+    pdf_ref:'本報告僅供參考', pdf_disclaimer:'免責聲明',
+    pdf_disclaimer_text:'本試算報告僅供財務規劃參考，不構成任何投資建議或貸款承諾。實際利率、貸款條件與配息率依各金融機構規定為準，配息率依市況浮動，投資有風險，請謹慎評估。',
+    pdf_default_title:'財務試算報告',
+    pdf_title_mortgage:'🏠 房貸方案試算報告', pdf_title_loan:'💳 信貸方案試算報告', pdf_title_multi:'🧪 多重貸款配息試算報告',
+    pdf_generating:'產生中…',
   },
   en: {
     app_title:'Mortgage · Loan Calculator', app_subtitle:'Integrated dividend fund strategy for financial planning',
@@ -628,6 +780,13 @@ const i18n = {
     td_total:'Total', no_loan:'No loan entries yet', no_div:'No dividend entries yet',
     badge_grace:'Grace', badge_repay:'P+I', badge_refi:'Refi',
     mo_sfx:'/mo', yr_sfx:'/yr',
+    pdf_company_prompt:'Company / brand name (leave blank for default title):',
+    pdf_params:'Parameters', pdf_results:'Results', pdf_date:'Date',
+    pdf_ref:'For reference only', pdf_disclaimer:'Disclaimer',
+    pdf_disclaimer_text:'This report is for financial planning reference only and does not constitute investment advice or a loan commitment. Actual rates and terms are subject to each financial institution. Dividend rates fluctuate with market conditions. Investments carry risk.',
+    pdf_default_title:'Financial Calculator Report',
+    pdf_title_mortgage:'🏠 Mortgage Plan Report', pdf_title_loan:'💳 Personal Loan Report', pdf_title_multi:'🧪 Multi-Loan Report',
+    pdf_generating:'Generating…',
   }
 };
 
@@ -652,6 +811,8 @@ function setLang(l) {
     const btn = document.getElementById(`lbtn_${row.id}`);
     if (btn) btn.textContent = row.interestOnly ? t('mode_interest') : t('mode_amort');
   });
+  // 語言切換後保持品牌名稱
+  if (typeof brandSettings !== 'undefined') applyBrand();
 }
 
 function toggleLang() {
@@ -1288,6 +1449,488 @@ function clearDivRows() {
   calcMulti();
 }
 
+// ─── 品牌設定 ──────────────────────────────────────────────────────────────
+let brandSettings = { name: '', logo: '', disclaimerZh: '', disclaimerEn: '' };
+
+function loadBrandFromStorage() {
+  try { const s = localStorage.getItem('rc_brand'); if (s) brandSettings = { ...brandSettings, ...JSON.parse(s) }; } catch(e) {}
+  applyBrand();
+}
+
+function applyBrand() {
+  const iconArea = document.getElementById('brand-icon-area');
+  const titleEl  = document.getElementById('header-title');
+  if (!iconArea || !titleEl) return;
+  iconArea.innerHTML = brandSettings.logo
+    ? `<img src="${brandSettings.logo}" style="height:36px;max-width:88px;border-radius:4px;object-fit:contain;">`
+    : '🏠';
+  if (brandSettings.name) {
+    titleEl.textContent = brandSettings.name;
+  } else {
+    titleEl.textContent = t('app_title');
+  }
+}
+
+function openSettings() {
+  document.getElementById('brand-name-input').value = brandSettings.name;
+  // 若尚未自訂，預填預設文字讓使用者直接修改
+  document.getElementById('brand-disclaimer-zh').value = brandSettings.disclaimerZh || i18n.zh.pdf_disclaimer_text;
+  document.getElementById('brand-disclaimer-en').value = brandSettings.disclaimerEn || i18n.en.pdf_disclaimer_text;
+  const img = document.getElementById('logo-preview-img');
+  const rmBtn = document.getElementById('btn-remove-logo');
+  if (brandSettings.logo) { img.src = brandSettings.logo; img.style.display = 'block'; rmBtn.style.display = 'inline-block'; }
+  else { img.style.display = 'none'; rmBtn.style.display = 'none'; }
+  document.getElementById('modal-settings').style.display = 'flex';
+}
+function closeSettings() { document.getElementById('modal-settings').style.display = 'none'; }
+
+function handleLogoUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    brandSettings.logo = e.target.result;
+    const img = document.getElementById('logo-preview-img');
+    img.src = e.target.result; img.style.display = 'block';
+    document.getElementById('btn-remove-logo').style.display = 'inline-block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeLogo() {
+  brandSettings.logo = '';
+  document.getElementById('logo-preview-img').style.display = 'none';
+  document.getElementById('btn-remove-logo').style.display = 'none';
+  document.getElementById('brand-logo-input').value = '';
+}
+
+function saveSettings() {
+  brandSettings.name = document.getElementById('brand-name-input').value.trim();
+  // 若輸入內容與預設相同則視為「未自訂」，儲存空字串讓系統走預設路徑
+  const dzh = document.getElementById('brand-disclaimer-zh').value.trim();
+  const den = document.getElementById('brand-disclaimer-en').value.trim();
+  brandSettings.disclaimerZh = dzh === i18n.zh.pdf_disclaimer_text ? '' : dzh;
+  brandSettings.disclaimerEn = den === i18n.en.pdf_disclaimer_text ? '' : den;
+  try { localStorage.setItem('rc_brand', JSON.stringify(brandSettings)); } catch(e) {}
+  applyBrand(); closeSettings();
+}
+
+function resetSettings() {
+  if (!confirm(lang==='zh' ? '確定重設所有品牌設定？' : 'Reset all brand settings?')) return;
+  brandSettings = { name: '', logo: '', disclaimerZh: '', disclaimerEn: '' };
+  try { localStorage.removeItem('rc_brand'); } catch(e) {}
+  applyBrand(); closeSettings();
+}
+
+// ─── 方案管理 ──────────────────────────────────────────────────────────────
+let savedPlans = [];
+
+function loadPlansFromStorage() {
+  try { const s = localStorage.getItem('rc_plans'); if (s) savedPlans = JSON.parse(s); } catch(e) {}
+}
+function savePlansToStorage() {
+  try { localStorage.setItem('rc_plans', JSON.stringify(savedPlans)); } catch(e) {}
+}
+
+function getCurrentPanelId() {
+  if (document.getElementById('panel-loan').classList.contains('active'))  return 'loan';
+  if (document.getElementById('panel-multi').classList.contains('active')) return 'multi';
+  return 'mortgage';
+}
+
+function captureCurrentValues(panelId) {
+  if (panelId === 'mortgage')
+    return Object.fromEntries(Object.keys(MORTGAGE_DEFAULTS).map(id => [id, document.getElementById(id)?.value || '']));
+  if (panelId === 'loan')
+    return Object.fromEntries(Object.keys(LOAN_DEFAULTS).map(id => [id, document.getElementById(id)?.value || '']));
+  return {
+    loanRows: loanRows.map(row => ({
+      interestOnly: row.interestOnly,
+      amount: document.getElementById(`la_${row.id}`)?.value || '',
+      rate:   document.getElementById(`lr_rate_${row.id}`)?.value || '',
+      months: document.getElementById(`lm_${row.id}`)?.value || '',
+    })),
+    divRows: divRows.map(row => ({
+      amount: document.getElementById(`da_${row.id}`)?.value || '',
+      rate:   document.getElementById(`dr_rate_${row.id}`)?.value || '',
+    })),
+  };
+}
+
+function doSavePlan() {
+  const nameInput = document.getElementById('plan-name-input');
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.style.borderColor = 'var(--red)'; nameInput.focus(); return; }
+  nameInput.style.borderColor = '';
+  const panelId = getCurrentPanelId();
+  const labels = { mortgage: lang==='zh'?'房貸':'Mortgage', loan: lang==='zh'?'信貸':'Loan', multi: lang==='zh'?'多重貸款':'Multi' };
+  savedPlans.push({ id: Date.now(), name, panel: panelId, panelLabel: labels[panelId], date: new Date().toLocaleDateString('zh-TW'), values: captureCurrentValues(panelId) });
+  savePlansToStorage();
+  nameInput.value = '';
+  renderPlansList();
+}
+
+function loadPlan(planId) {
+  const plan = savedPlans.find(p => p.id === planId); if (!plan) return;
+  // Switch tab
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${plan.panel}`).classList.add('active');
+  document.querySelectorAll('.tab').forEach(tab => { if (tab.getAttribute('onclick')?.includes(`'${plan.panel}'`)) tab.classList.add('active'); });
+
+  if (plan.panel === 'mortgage') {
+    Object.entries(plan.values).forEach(([id, val]) => { const el = document.getElementById(id); if (el) el.value = val; });
+    calcMortgage();
+  } else if (plan.panel === 'loan') {
+    Object.entries(plan.values).forEach(([id, val]) => { const el = document.getElementById(id); if (el) el.value = val; });
+    calcLoan();
+  } else {
+    document.getElementById('multi_loans').innerHTML = '';
+    document.getElementById('multi_divs').innerHTML = '';
+    loanRows = []; loanIdSeq = 0; divRows = []; divIdSeq = 0;
+    (plan.values.loanRows || []).forEach(r => {
+      addLoanRow();
+      const row = loanRows[loanRows.length - 1];
+      row.interestOnly = r.interestOnly;
+      document.getElementById(`la_${row.id}`).value = r.amount;
+      document.getElementById(`lr_rate_${row.id}`).value = r.rate;
+      document.getElementById(`lm_${row.id}`).value = r.months;
+      const btn = document.getElementById(`lbtn_${row.id}`);
+      if (btn) { btn.textContent = r.interestOnly ? t('mode_interest') : t('mode_amort'); btn.className = `btn-mode ${r.interestOnly?'interest':'amort'}`; }
+    });
+    (plan.values.divRows || []).forEach(r => {
+      addDivRow();
+      const row = divRows[divRows.length - 1];
+      document.getElementById(`da_${row.id}`).value = r.amount;
+      document.getElementById(`dr_rate_${row.id}`).value = r.rate;
+    });
+    calcMulti();
+  }
+  closePlans();
+}
+
+function deletePlan(planId) {
+  if (!confirm(lang==='zh'?'確定刪除此方案？':'Delete this plan?')) return;
+  savedPlans = savedPlans.filter(p => p.id !== planId);
+  savePlansToStorage(); renderPlansList();
+}
+
+function renderPlansList() {
+  const container = document.getElementById('plans-list-container');
+  if (savedPlans.length === 0) {
+    container.innerHTML = `<div style="color:var(--muted);font-size:0.82rem;text-align:center;padding:16px;">${lang==='zh'?'尚未儲存任何方案':'No saved plans yet'}</div>`;
+    return;
+  }
+  container.innerHTML = [...savedPlans].reverse().map(plan => `
+    <div class="plan-item">
+      <div class="plan-item-info">
+        <div class="plan-item-name">${plan.name}</div>
+        <div class="plan-item-meta">${plan.date} &nbsp;·&nbsp; <span class="plan-tag">${plan.panelLabel}</span></div>
+      </div>
+      <button class="btn-load" onclick="loadPlan(${plan.id})">${lang==='zh'?'載入':'Load'}</button>
+      <button class="btn-del" onclick="deletePlan(${plan.id})" title="${lang==='zh'?'刪除':'Delete'}">✕</button>
+    </div>`).join('');
+}
+
+function openPlans()  { renderPlansList(); document.getElementById('modal-plans').style.display = 'flex'; }
+function closePlans() { document.getElementById('modal-plans').style.display = 'none'; }
+
+// ─── PDF 匯出 ──────────────────────────────────────────────────────────────
+function exportPDF() {
+  // 優先使用品牌設定名稱；若無設定才詢問
+  let company = brandSettings.name;
+  if (!company) company = prompt(t('pdf_company_prompt'), '') ?? '';
+
+  let panelId = 'mortgage';
+  if (document.getElementById('panel-loan').classList.contains('active'))  panelId = 'loan';
+  if (document.getElementById('panel-multi').classList.contains('active')) panelId = 'multi';
+
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+
+  const btn = document.getElementById('btn_pdf');
+  btn.textContent = t('pdf_generating');
+  btn.disabled = true;
+
+  const html = buildPDFHtml(panelId, company, dateStr);
+  const el = document.getElementById('pdf-template');
+  el.innerHTML = html;
+  el.style.display = 'block';
+
+  const fileNames = { mortgage: lang==='zh'?'房貸試算':'Mortgage', loan: lang==='zh'?'信貸試算':'Loan', multi: lang==='zh'?'多重貸款':'MultiLoan' };
+  html2pdf().set({
+    margin: [10, 10, 10, 10],
+    filename: `${fileNames[panelId]}_${dateStr.replace(/\//g,'')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).from(el).save().then(() => {
+    el.style.display = 'none';
+    btn.textContent = '📥 PDF';
+    btn.disabled = false;
+  });
+}
+
+function buildPDFHtml(panelId, company, dateStr) {
+  const co = company.trim() || t('pdf_default_title');
+  const titles = { mortgage: t('pdf_title_mortgage'), loan: t('pdf_title_loan'), multi: t('pdf_title_multi') };
+  const title = titles[panelId];
+
+  // Use custom disclaimer if set, otherwise default
+  const disclaimer = lang === 'zh'
+    ? (brandSettings.disclaimerZh || t('pdf_disclaimer_text'))
+    : (brandSettings.disclaimerEn || t('pdf_disclaimer_text'));
+
+  // Logo in PDF header
+  const logoHtml = brandSettings.logo
+    ? `<img src="${brandSettings.logo}" style="height:38px;max-width:90px;border-radius:4px;object-fit:contain;margin-right:10px;vertical-align:middle;">`
+    : '';
+
+  let body = '';
+  if (panelId === 'mortgage')     body = buildMortgagePDFBody();
+  else if (panelId === 'loan')    body = buildLoanPDFBody();
+  else                            body = buildMultiPDFBody();
+
+  return `
+  <div style="font-family:'Microsoft JhengHei','PingFang TC','Segoe UI',sans-serif;color:#1e2d3d;font-size:12px;width:100%;box-sizing:border-box;">
+    <div style="background:linear-gradient(135deg,#0d4f8a,#1a6eb5);color:#fff;padding:14px 18px;border-radius:8px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start;">
+      <div style="display:flex;align-items:center;">
+        ${logoHtml}
+        <div>
+          <div style="font-size:17px;font-weight:800;letter-spacing:0.5px;">${co}</div>
+          <div style="font-size:12px;opacity:0.85;margin-top:4px;">${title}</div>
+        </div>
+      </div>
+      <div style="text-align:right;font-size:10px;opacity:0.8;line-height:1.8;">
+        <div>${t('pdf_date')}: ${dateStr}</div>
+        <div>${t('pdf_ref')}</div>
+      </div>
+    </div>
+
+    ${body}
+
+    <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:6px;padding:10px 12px;margin-top:14px;">
+      <div style="font-size:10px;font-weight:700;color:#6b7e92;margin-bottom:3px;">⚠️ ${t('pdf_disclaimer')}</div>
+      <div style="font-size:10px;color:#6b7e92;line-height:1.6;">${disclaimer}</div>
+    </div>
+    <div style="text-align:center;margin-top:10px;font-size:10px;color:#aaa;">
+      ${co} · ${dateStr}
+    </div>
+  </div>`;
+}
+
+/* ── 共用 helper ── */
+function pdfRow(l1, v1, l2, v2, bg) {
+  const bg_ = bg ? 'background:#f7fafd;' : '';
+  return `<tr style="${bg_}">
+    <td style="padding:5px 8px;font-size:11px;color:#6b7e92;width:22%;">${l1}</td>
+    <td style="padding:5px 8px;font-size:11px;font-weight:700;width:28%;">${v1}</td>
+    <td style="padding:5px 8px;font-size:11px;color:#6b7e92;width:22%;">${l2||''}</td>
+    <td style="padding:5px 8px;font-size:11px;font-weight:700;width:28%;">${v2||''}</td>
+  </tr>`;
+}
+function pdfTable(headLabel, rows) {
+  return `<table style="width:100%;border-collapse:collapse;margin-bottom:12px;border:1px solid #d0dce8;border-radius:6px;overflow:hidden;">
+    <thead><tr style="background:#e8f2fc;"><th colspan="4" style="padding:7px 10px;text-align:left;font-size:12px;color:#1a6eb5;font-weight:700;">${headLabel}</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+function pdfCfBox(label, value, positive) {
+  const bg  = positive ? '#e8f8f0' : '#fdf0ef';
+  const bd  = positive ? '#a9dfbf' : '#f1948a';
+  const col = positive ? '#27ae60' : '#e74c3c';
+  return `<div style="flex:1;background:${bg};border:1px solid ${bd};border-radius:6px;padding:10px;text-align:center;">
+    <div style="font-size:10px;color:#6b7e92;margin-bottom:4px;">${label}</div>
+    <div style="font-size:17px;font-weight:800;color:${col};">${value}</div>
+  </div>`;
+}
+
+/* ── 房貸 PDF body ── */
+function buildMortgagePDFBody() {
+  const origLoan = v('m_loan'), years = v('m_years'), gracYears = v('m_grace'), origRate = v('m_rate');
+  const mktVal = v('m_value'), ltvPct = v('m_ltv'), newRate = v('m_new_rate'), divRatePct = v('m_div_rate');
+  const repayOther = v('m_repay_other'), reserve = v('m_reserve');
+
+  const repayMonths = years * 12 - gracYears * 12;
+  const mNewRate = newRate / 100 / 12;
+  const addlLoan = Math.max(0, mktVal * ltvPct / 100 - origLoan);
+  const totalLoan = origLoan + addlLoan;
+  const gracePayment = totalLoan * mNewRate;
+  const repayPayment = pmt(totalLoan, mNewRate, repayMonths);
+  const invest = addlLoan - repayOther - reserve;
+  const monthlyDiv = invest > 0 ? invest * divRatePct / 100 / 12 : 0;
+  const cf_grace = monthlyDiv - gracePayment;
+  const cf_repay = monthlyDiv - repayPayment;
+
+  return pdfTable(`📋 ${t('pdf_params')}`,
+    pdfRow(t('m_loan_amt'), '$'+fmt(origLoan), t('m_loan_years'), years+t('unit_yr')) +
+    pdfRow(t('m_grace'), gracYears+t('unit_yr'), t('m_rate'), origRate+'%', true) +
+    pdfRow(t('m_value'), '$'+fmt(mktVal), t('m_ltv'), ltvPct+'%') +
+    pdfRow(t('m_new_rate'), newRate+'%', t('m_div_rate'), divRatePct+'%', true)
+  ) +
+  pdfTable(`📊 ${t('pdf_results')}`,
+    pdfRow(t('r_add_loan'), '$'+fmt(addlLoan), t('r_total_loan'), '$'+fmt(totalLoan)) +
+    pdfRow(t('r_invest_amt'), '$'+fmt(invest), t('r_monthly_div'), '$'+fmt(monthlyDiv), true) +
+    pdfRow(t('r_grace_pay'), '$'+fmt(gracePayment), t('r_repay_pay'), '$'+fmt(repayPayment))
+  ) +
+  `<div style="display:flex;gap:10px;margin-bottom:12px;">
+    ${pdfCfBox(t('m_cf1_label'), fmtMoney(cf_grace)+t('mo_sfx'), cf_grace>=0)}
+    ${pdfCfBox(t('m_cf2_label'), fmtMoney(cf_repay)+t('mo_sfx'), cf_repay>=0)}
+  </div>`;
+}
+
+/* ── 信貸 PDF body ── */
+function buildLoanPDFBody() {
+  const P = v('l_loan'), months = v('l_months'), grace = v('l_grace');
+  const rate = v('l_rate'), fee = v('l_fee'), invest = v('l_invest');
+  const divRatePct = v('l_div_rate'), refiYr = v('l_refi_yr');
+
+  const mr = rate / 100 / 12, refiMo = refiYr * 12;
+  const repayPayment = mr > 0 ? pmt(P, mr, months) : P / months;
+  const monthlyDiv = invest * divRatePct / 100 / 12;
+  const netMonthly = repayPayment - monthlyDiv;
+
+  let balAtRefi = P;
+  { let b = P;
+    for (let i = 1; i <= Math.min(refiMo, months); i++) {
+      const intr = b * mr;
+      if (i > grace) b = Math.max(0, b - (repayPayment - intr));
+    }
+    balAtRefi = b; }
+
+  const cashFromRefi = P - balAtRefi;
+  const fundAfterRefi = invest + cashFromRefi;
+  const divAfterRefi = fundAfterRefi * divRatePct / 100 / 12;
+  const netAfterRefi = repayPayment - divAfterRefi;
+  const fundAfterRefi2 = fundAfterRefi + cashFromRefi;
+  const divAfterRefi2 = fundAfterRefi2 * divRatePct / 100 / 12;
+  const netAfterRefi2 = repayPayment - divAfterRefi2;
+  const refiMo2 = refiYr * 2 * 12;
+
+  let totalPaid = fee;
+  { let b = P;
+    for (let i = 1; i <= months; i++) {
+      const intr = b * mr;
+      if (i <= grace) totalPaid += intr;
+      else { totalPaid += repayPayment; b = Math.max(0, b - (repayPayment - intr)); }
+    } }
+
+  const profit_base = fundAfterRefi2 - totalPaid;
+  const profit_good = fundAfterRefi2 * 1.2 - totalPaid;
+  const profit_bad  = fundAfterRefi2 * 0.8 - totalPaid;
+
+  const scenarios = [
+    { bg:'#f0f7ff', bd:'#90c3f0', col:'#1a6eb5', title:t('sc_base'), val:profit_base, sub:t('sc_profit') },
+    { bg:'#e8f8f0', bd:'#82d9aa', col:'#27ae60', title:t('sc_good'), val:profit_good, sub:t('sc_opt') },
+    { bg:'#fdf0ef', bd:'#f1948a', col:'#e74c3c', title:t('sc_bad'),  val:profit_bad,  sub:t('sc_pes') },
+  ].map(s => `<div style="flex:1;background:${s.bg};border:1px solid ${s.bd};border-radius:6px;padding:8px;text-align:center;">
+    <div style="font-size:10px;font-weight:700;color:#6b7e92;margin-bottom:3px;">${s.title}</div>
+    <div style="font-size:14px;font-weight:800;color:${s.col};">$${fmt(s.val)}</div>
+    <div style="font-size:10px;color:#6b7e92;margin-top:2px;">${s.sub}</div>
+  </div>`).join('');
+
+  return pdfTable(`📋 ${t('pdf_params')}`,
+    pdfRow(t('l_loan_amt'), '$'+fmt(P), t('l_months'), months+t('unit_mo')) +
+    pdfRow(t('l_grace'), grace+t('unit_mo'), t('l_rate'), rate+'%', true) +
+    pdfRow(t('l_invest_amt'), '$'+fmt(invest), t('l_div_rate'), divRatePct+'%') +
+    pdfRow(t('l_refi'), refiYr+t('unit_yr'), t('l_fee'), '$'+fmt(fee), true)
+  ) +
+  pdfTable(`📊 ${t('pdf_results')}`,
+    pdfRow(t('r_monthly_pay'), '$'+fmt(repayPayment), t('r_monthly_div'), '$'+fmt(monthlyDiv)) +
+    pdfRow(t('r_net_monthly'), (netMonthly>=0?'− ':'+ ')+'$'+fmt(Math.abs(netMonthly)), t('sc_total_paid'), '$'+fmt(totalPaid), true) +
+    pdfRow(t('ph_cash'), '$'+fmt(cashFromRefi), t('ph_fund'), '$'+fmt(fundAfterRefi)) +
+    pdfRow(t('ph_new_div'), '$'+fmt(divAfterRefi), t('ph_fund2'), '$'+fmt(fundAfterRefi2), true)
+  ) +
+  `<div style="display:flex;gap:8px;margin-bottom:12px;">${scenarios}</div>`;
+}
+
+/* ── 多重貸款 PDF body ── */
+function buildMultiPDFBody() {
+  let totalLoanAmt = 0, totalMonthlyLoan = 0, totalAnnualInterest = 0;
+  let totalDivAmt = 0, totalMonthlyDiv = 0;
+  const thS = 'padding:5px 6px;font-size:11px;font-weight:700;color:#1a6eb5;background:#e8f2fc;';
+
+  const loanRows_ = loanRows.map((row, idx) => {
+    const id = row.id;
+    const amount  = parseFloat(document.getElementById(`la_${id}`)?.value) || 0;
+    const rateAnn = parseFloat(document.getElementById(`lr_rate_${id}`)?.value) || 0;
+    const mo      = parseFloat(document.getElementById(`lm_${id}`)?.value) || 0;
+    const mr = rateAnn / 100 / 12;
+    const hasMo = mo > 0 && document.getElementById(`lm_${id}`)?.value.trim() !== '';
+    let monthlyPay = 0, modeLabel = '';
+    if (hasMo && !row.interestOnly) {
+      monthlyPay = amount > 0 && mr > 0 ? pmt(amount, mr, mo) : amount / mo;
+      modeLabel = `${t('mode_amort')} ${mo}${t('unit_mo')}`;
+    } else { monthlyPay = amount * mr; modeLabel = t('mode_interest'); }
+    const annualInt = amount * rateAnn / 100;
+    totalLoanAmt += amount; totalMonthlyLoan += monthlyPay; totalAnnualInterest += annualInt;
+    return `<tr style="${idx%2===1?'background:#f7fafd;':''}">
+      <td style="padding:4px 6px;text-align:center;font-size:11px;font-weight:700;color:#1a6eb5;">${idx+1}</td>
+      <td style="padding:4px 6px;font-size:11px;">$${fmt(amount)}</td>
+      <td style="padding:4px 6px;font-size:11px;">${rateAnn}%</td>
+      <td style="padding:4px 6px;font-size:11px;">${modeLabel}</td>
+      <td style="padding:4px 6px;font-size:11px;text-align:right;color:#e74c3c;font-weight:700;">$${fmt(monthlyPay)}${t('mo_sfx')}</td>
+      <td style="padding:4px 6px;font-size:11px;text-align:right;color:#e74c3c;">$${fmt(annualInt)}${t('yr_sfx')}</td>
+    </tr>`;
+  }).join('');
+
+  const divRows_ = divRows.map((row, idx) => {
+    const id = row.id;
+    const amount  = parseFloat(document.getElementById(`da_${id}`)?.value) || 0;
+    const rateAnn = parseFloat(document.getElementById(`dr_rate_${id}`)?.value) || 0;
+    const monthly = amount * rateAnn / 100 / 12;
+    totalDivAmt += amount; totalMonthlyDiv += monthly;
+    return `<tr style="${idx%2===1?'background:#f7fafd;':''}">
+      <td style="padding:4px 6px;text-align:center;font-size:11px;font-weight:700;color:#1a6eb5;">${idx+1}</td>
+      <td style="padding:4px 6px;font-size:11px;">$${fmt(amount)}</td>
+      <td style="padding:4px 6px;font-size:11px;">${rateAnn}%</td>
+      <td style="padding:4px 6px;font-size:11px;text-align:right;color:#27ae60;font-weight:700;">$${fmt(monthly)}${t('mo_sfx')}</td>
+      <td style="padding:4px 6px;font-size:11px;text-align:right;color:#27ae60;">$${fmt(amount*rateAnn/100)}${t('yr_sfx')}</td>
+    </tr>`;
+  }).join('');
+
+  const netMonthly   = totalMonthlyDiv - totalMonthlyLoan;
+  const netAnnual    = netMonthly * 12;
+  const overallYield = totalLoanAmt > 0 ? netAnnual / totalLoanAmt * 100 : 0;
+
+  const summaryItems = [
+    { label:t('sb_total_loan'),    val:'$'+fmt(totalLoanAmt),                                    col:'#0d4f8a' },
+    { label:t('sb_monthly_loan'),  val:'$'+fmt(totalMonthlyLoan)+t('mo_sfx'),                    col:'#e74c3c' },
+    { label:t('sb_invest'),        val:'$'+fmt(totalDivAmt),                                     col:'#0d4f8a' },
+    { label:t('sb_monthly_div'),   val:'$'+fmt(totalMonthlyDiv)+t('mo_sfx'),                     col:'#27ae60' },
+    { label:t('sb_net_monthly'),   val:(netMonthly>=0?'+':'')+'$'+fmt(netMonthly)+t('mo_sfx'),   col:netMonthly>=0?'#27ae60':'#e74c3c' },
+    { label:t('sb_yield'),         val:(overallYield>=0?'+':'')+overallYield.toFixed(2)+'%',     col:overallYield>=0?'#27ae60':'#e74c3c' },
+  ].map(it => `<div style="flex:1;min-width:120px;background:#f0f7ff;border:1px solid #d0dce8;border-radius:6px;padding:8px 10px;margin:3px;">
+    <div style="font-size:10px;color:#6b7e92;font-weight:700;margin-bottom:2px;">${it.label}</div>
+    <div style="font-size:14px;font-weight:800;color:${it.col};">${it.val}</div>
+  </div>`).join('');
+
+  return (loanRows.length > 0 ? `
+    <table style="width:100%;border-collapse:collapse;margin-bottom:12px;border:1px solid #d0dce8;border-radius:6px;overflow:hidden;">
+      <thead><tr><th style="${thS}text-align:center;">#</th><th style="${thS}">${t('td_loan')}</th><th style="${thS}">${t('td_rate')}</th>
+        <th style="${thS}">${t('td_mode')}</th><th style="${thS}text-align:right;">${t('td_monthly_pay')}</th><th style="${thS}text-align:right;">${t('td_annual_int')}</th></tr></thead>
+      <tbody>${loanRows_}
+        <tr style="background:#f0f7ff;font-weight:700;">
+          <td colspan="4" style="padding:5px 6px;font-size:11px;text-align:right;">${t('td_total')}</td>
+          <td style="padding:5px 6px;font-size:11px;text-align:right;color:#e74c3c;">$${fmt(totalMonthlyLoan)}${t('mo_sfx')}</td>
+          <td style="padding:5px 6px;font-size:11px;text-align:right;color:#e74c3c;">$${fmt(totalAnnualInterest)}${t('yr_sfx')}</td>
+        </tr>
+      </tbody>
+    </table>` : '') +
+  (divRows.length > 0 ? `
+    <table style="width:100%;border-collapse:collapse;margin-bottom:12px;border:1px solid #d0dce8;border-radius:6px;overflow:hidden;">
+      <thead><tr><th style="${thS}text-align:center;">#</th><th style="${thS}">${t('td_invest')}</th><th style="${thS}">${t('td_div_rate')}</th>
+        <th style="${thS}text-align:right;">${t('td_monthly_div')}</th><th style="${thS}text-align:right;">${t('td_annual_div')}</th></tr></thead>
+      <tbody>${divRows_}
+        <tr style="background:#f0f7ff;font-weight:700;">
+          <td colspan="3" style="padding:5px 6px;font-size:11px;text-align:right;">${t('td_total')}</td>
+          <td style="padding:5px 6px;font-size:11px;text-align:right;color:#27ae60;">$${fmt(totalMonthlyDiv)}${t('mo_sfx')}</td>
+          <td style="padding:5px 6px;font-size:11px;text-align:right;color:#27ae60;">$${fmt(totalMonthlyDiv*12)}${t('yr_sfx')}</td>
+        </tr>
+      </tbody>
+    </table>` : '') +
+  `<div style="display:flex;flex-wrap:wrap;gap:0;margin-bottom:12px;">${summaryItems}</div>`;
+}
+
 // 初始加入各一筆
 addLoanRow();
 addDivRow();
@@ -1302,6 +1945,8 @@ function toggleCollapse(bodyId, iconId) {
 // Init
 calcMortgage();
 calcLoan();
+loadBrandFromStorage();
+loadPlansFromStorage();
 </script>
 </body>
 </html>
