@@ -203,7 +203,34 @@
   }
   @media (max-width: 600px) {
     .grid-top, .grid-3, .grid-2, .grid-top-2, .scenario-grid { grid-template-columns: 1fr; }
-    .field label { flex: 0 0 90px; }
+    .field label { flex: 0 0 90px; font-size: 0.74rem; }
+    /* Header: hide subtitle, compress padding */
+    .header { padding: 8px 10px; gap: 6px; }
+    .header p { display: none; }
+    .header-icon { font-size: 1.05rem; }
+    .header h1 { font-size: 0.92rem; }
+    .btn-header-icon { padding: 3px 7px; font-size: 0.82rem; }
+    .btn-pdf { padding: 4px 8px; font-size: 0.76rem; }
+    .btn-lang { padding: 4px 8px; font-size: 0.76rem; letter-spacing: 0; }
+    /* Tabs: horizontal scroll on small screens */
+    .tabs { padding: 0 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
+    .tab { padding: 8px 10px; font-size: 0.8rem; white-space: nowrap; flex-shrink: 0; }
+    /* Main content */
+    .main { padding: 8px; }
+    .result-grid { grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); }
+    .cashflow-box .cf-value { font-size: 1.05rem; }
+    /* Export dropdown opens to the left on mobile to stay in viewport */
+    .export-dropdown { right: auto; left: 0; }
+    /* Modals */
+    .modal-box { margin: 8px; border-radius: 10px; }
+    /* Sensitivity table: slightly smaller on mobile */
+    #m_sensitivity, #l_sensitivity { font-size: 0.7rem; }
+  }
+  @media (max-width: 400px) {
+    .header h1 { font-size: 0.82rem; }
+    .btn-header-icon { padding: 3px 5px; }
+    .field label { flex: 0 0 76px; font-size: 0.7rem; }
+    .field-note { margin-left: 82px; }
   }
 
   /* 語言切換按鈕 */
@@ -392,6 +419,61 @@
   .btn-load { background: var(--primary); color: #fff; border: none; padding: 4px 10px; border-radius: 5px; font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
   .btn-load:hover { background: var(--primary-dark); }
 
+  /* ─── Disclaimer bar ────────────────────────────── */
+  .disclaimer-bar {
+    margin-top: 14px; padding: 10px 14px;
+    background: #fffde7; border: 1px solid #ffe082;
+    border-left: 3px solid var(--accent); border-radius: 7px;
+    font-size: 0.72rem; color: var(--muted); line-height: 1.55;
+  }
+  .disc-title {
+    font-size: 0.75rem; font-weight: 700;
+    color: var(--accent); margin-bottom: 4px;
+  }
+
+  /* ─── Tooltips (JS-driven bubble on body — avoids overflow:hidden clipping) ── */
+  .tip {
+    display: inline-block; font-size: 0.68rem; color: var(--primary);
+    cursor: help; margin-left: 3px; vertical-align: middle;
+    user-select: none; line-height: 1;
+  }
+  .tip:hover { color: var(--primary-dark); }
+  #tip-bubble {
+    display: none; position: fixed; z-index: 99999;
+    background: #1e2d3d; color: #fff;
+    font-size: 0.72rem; font-weight: 400; line-height: 1.45;
+    padding: 7px 10px; border-radius: 7px; max-width: 220px; white-space: normal;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35); pointer-events: none;
+  }
+
+  /* ─── Export dropdown ─────────────────────────────── */
+  .export-wrap { position: relative; display: inline-block; }
+  .export-dropdown {
+    display: none; position: absolute; top: calc(100% + 5px); right: 0;
+    background: #fff; border-radius: 9px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.22);
+    min-width: 158px; z-index: 2000; overflow: hidden;
+    border: 1px solid var(--border);
+    animation: fadeDown 0.12s ease;
+  }
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+  .export-dropdown.open { display: block; }
+  .export-dropdown-item {
+    display: block; width: 100%; padding: 10px 16px;
+    background: none; border: none; border-bottom: 1px solid #f0f4f8;
+    text-align: left; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; color: var(--text); transition: background 0.1s; white-space: nowrap;
+  }
+  .export-dropdown-item:last-child { border-bottom: none; }
+  .export-dropdown-item:hover { background: var(--primary-light); color: var(--primary); }
+
+  /* ─── Compare select ─────────────────────────────── */
+  .cmp-select {
+    width: 100%; padding: 6px 8px; border: 1.5px solid var(--border);
+    border-radius: 6px; font-size: 0.82rem; background: #fff; cursor: pointer;
+  }
+  .cmp-select:focus { outline: none; border-color: var(--primary); }
+
   /* PDF 匯出按鈕 */
   .btn-pdf {
     background: rgba(255,255,255,0.18); color: #fff;
@@ -403,6 +485,8 @@
   .btn-pdf:active { transform: scale(0.96); }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -414,7 +498,13 @@
   </div>
   <button class="btn-header-icon" onclick="openPlans()" title="儲存/載入方案">💾</button>
   <button class="btn-header-icon" onclick="openSettings()" title="品牌設定">⚙️</button>
-  <button class="btn-pdf" id="btn_pdf" onclick="exportPDF()">📥 PDF</button>
+  <div class="export-wrap">
+    <button class="btn-pdf" onclick="toggleExportMenu(event)">📤 匯出 ▾</button>
+    <div id="export-dropdown" class="export-dropdown">
+      <button class="export-dropdown-item" id="btn_pdf" onclick="exportPDFFromMenu()">📥 PDF 報告</button>
+      <button class="export-dropdown-item" id="btn_excel" onclick="exportExcelFromMenu()">📊 Excel 攤還表</button>
+    </div>
+  </div>
   <button class="btn-lang" id="btn_lang" onclick="toggleLang()">EN</button>
 </div>
 
@@ -471,6 +561,18 @@
     <!-- 試算結果 -->
     <div class="result-grid" id="m_results"></div>
 
+    <!-- 圖表 + 敏感度 -->
+    <div class="grid-2" style="margin-bottom:10px;">
+      <div class="card" style="min-width:0;">
+        <div class="card-title" data-i18n="chart_cashflow_title" style="margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--primary-light);">📈 每年現金流走勢</div>
+        <div style="position:relative;height:200px;"><canvas id="m_cashflow_chart"></canvas></div>
+      </div>
+      <div class="card" style="min-width:0;">
+        <div class="card-title" data-i18n="sens_title" style="margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--primary-light);">📊 利率敏感度分析</div>
+        <div id="m_sensitivity" style="overflow-x:auto;"></div>
+      </div>
+    </div>
+
     <!-- 攤還表（折疊） -->
     <div class="collapse-header" onclick="toggleCollapse('m_table','m_toggle')">
       <span data-i18n="m_table_title">📋 攤還表（整合後房貸）</span>
@@ -488,6 +590,12 @@
           <tbody id="m_amort_body"></tbody>
         </table>
       </div>
+    </div>
+
+    <!-- 免責聲明 -->
+    <div class="disclaimer-bar">
+      <div class="disc-title" id="disc_title_m"></div>
+      <div id="disc_text_m"></div>
     </div>
   </div>
 
@@ -529,6 +637,18 @@
     <!-- 試算結果 -->
     <div class="result-grid" id="l_results"></div>
 
+    <!-- 圖表 + 敏感度 -->
+    <div class="grid-2" style="margin-bottom:10px;">
+      <div class="card" style="min-width:0;">
+        <div class="card-title" data-i18n="chart_cashflow_title" style="margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--primary-light);">📈 每年現金流走勢</div>
+        <div style="position:relative;height:200px;"><canvas id="l_cashflow_chart"></canvas></div>
+      </div>
+      <div class="card" style="min-width:0;">
+        <div class="card-title" data-i18n="sens_title" style="margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--primary-light);">📊 利率敏感度分析</div>
+        <div id="l_sensitivity" style="overflow-x:auto;"></div>
+      </div>
+    </div>
+
     <!-- 情境分析 -->
     <div id="l_scenarios"></div>
 
@@ -549,6 +669,12 @@
           <tbody id="l_amort_body"></tbody>
         </table>
       </div>
+    </div>
+
+    <!-- 免責聲明 -->
+    <div class="disclaimer-bar">
+      <div class="disc-title" id="disc_title_l"></div>
+      <div id="disc_text_l"></div>
     </div>
   </div>
 
@@ -613,6 +739,12 @@
         <div id="multi_div_detail"></div>
       </div>
     </div>
+
+    <!-- 免責聲明 -->
+    <div class="disclaimer-bar">
+      <div class="disc-title" id="disc_title_multi"></div>
+      <div id="disc_text_multi"></div>
+    </div>
   </div>
 
 </div><!-- /main -->
@@ -669,10 +801,37 @@
         <button class="btn-primary" onclick="doSavePlan()">儲存</button>
       </div>
 
-      <div class="modal-section-title">📂 已儲存方案</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div class="modal-section-title" style="margin-bottom:0;flex:1;">📂 已儲存方案</div>
+        <button class="btn-secondary" style="font-size:0.72rem;padding:3px 10px;white-space:nowrap;" onclick="openCompare()">📊 比較方案</button>
+      </div>
       <div id="plans-list-container">
         <div style="color:var(--muted);font-size:0.82rem;text-align:center;padding:16px;">尚未儲存任何方案</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 📊 方案比較 Modal -->
+<div id="modal-compare" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeCompare()">
+  <div class="modal-box" style="max-width:640px;">
+    <div class="modal-header">
+      <h3>📊 方案比較</h3>
+      <button class="modal-close" onclick="closeCompare()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:flex-end;margin-bottom:14px;">
+        <div>
+          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);margin-bottom:3px;">🅐 方案 A</div>
+          <select id="cmp-sel-a" class="cmp-select"></select>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;font-weight:700;color:var(--muted);margin-bottom:3px;">🅑 方案 B</div>
+          <select id="cmp-sel-b" class="cmp-select"></select>
+        </div>
+        <button class="btn-primary" onclick="runCompare()">▶ 比較</button>
+      </div>
+      <div id="cmp-result"></div>
     </div>
   </div>
 </div>
@@ -732,6 +891,16 @@ const i18n = {
     pdf_default_title:'財務試算報告',
     pdf_title_mortgage:'🏠 房貸方案試算報告', pdf_title_loan:'💳 信貸方案試算報告', pdf_title_multi:'🧪 多重貸款配息試算報告',
     pdf_generating:'產生中…',
+    chart_cashflow_title:'📈 每年現金流走勢', sens_title:'📊 利率敏感度分析',
+    chart_payment:'月付金', chart_dividend:'月配息', chart_netcf:'淨現金流',
+    sens_rate:'利率', sens_grace_pay:'寬限月付', sens_repay_pay:'還本月付',
+    sens_grace_cf:'寬限現金流', sens_repay_cf:'還本現金流',
+    sens_monthly_pay:'月付金', sens_net:'淨現金流', sens_current:'▲目前',
+    cmp_total_loan:'整合後總貸款', cmp_add_loan:'可增貸金額', cmp_invest:'投入基金金額',
+    cmp_monthly_div:'每月配息', cmp_grace_pay:'寬限期月付', cmp_repay_pay:'還本期月付',
+    cmp_grace_cf:'寬限期淨現金流', cmp_repay_cf:'還本期淨現金流',
+    cmp_loan_amt:'貸款金額', cmp_monthly_pay:'月付金', cmp_net_monthly:'淨現金流（月）',
+    cmp_refi_cash:'借新還舊現金', cmp_refi_div:'借新還舊後月配息', cmp_total_paid:'全期總繳款',
   },
   en: {
     app_title:'Mortgage · Loan Calculator', app_subtitle:'Integrated dividend fund strategy for financial planning',
@@ -784,6 +953,16 @@ const i18n = {
     pdf_default_title:'Financial Calculator Report',
     pdf_title_mortgage:'🏠 Mortgage Plan Report', pdf_title_loan:'💳 Personal Loan Report', pdf_title_multi:'🧪 Multi-Loan Report',
     pdf_generating:'Generating…',
+    chart_cashflow_title:'📈 Annual Cash Flow', sens_title:'📊 Rate Sensitivity',
+    chart_payment:'Payment', chart_dividend:'Dividend', chart_netcf:'Net CF',
+    sens_rate:'Rate', sens_grace_pay:'Grace Pay', sens_repay_pay:'Repay Pay',
+    sens_grace_cf:'Grace CF', sens_repay_cf:'Repay CF',
+    sens_monthly_pay:'Monthly Pay', sens_net:'Net CF', sens_current:'▲current',
+    cmp_total_loan:'Total Loan', cmp_add_loan:'Additional Loan', cmp_invest:'Fund Investment',
+    cmp_monthly_div:'Monthly Dividend', cmp_grace_pay:'Grace Payment', cmp_repay_pay:'Repayment (P+I)',
+    cmp_grace_cf:'Grace Net CF', cmp_repay_cf:'Repayment Net CF',
+    cmp_loan_amt:'Loan Amount', cmp_monthly_pay:'Monthly Payment', cmp_net_monthly:'Net Monthly CF',
+    cmp_refi_cash:'Refinance Cash', cmp_refi_div:'Post-Refi Dividend', cmp_total_paid:'Total Paid',
   }
 };
 
@@ -810,6 +989,8 @@ function setLang(l) {
   });
   // 語言切換後保持品牌名稱
   if (typeof brandSettings !== 'undefined') applyBrand();
+  // 更新 tooltip 文字
+  if (typeof refreshTooltips === 'function') refreshTooltips();
 }
 
 function toggleLang() {
@@ -847,6 +1028,10 @@ function switchTab(tab) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   event.target.classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
+  setTimeout(() => {
+    if (tab === 'mortgage' && mChart) mChart.resize();
+    if (tab === 'loan' && lChart) lChart.resize();
+  }, 50);
 }
 
 // ─── 房貸方案 ─────────────────────────────────────────────────────────────
@@ -940,6 +1125,13 @@ function calcMortgage() {
     </tr>`;
   }
   document.getElementById('m_amort_body').innerHTML = rows;
+
+  // ── Chart + Sensitivity ──────────────────────────────────────────────────
+  const yLabels = Array.from({length: years}, (_, i) => lang === 'zh' ? `第${i+1}年` : `Y${i+1}`);
+  const payD = yLabels.map((_, i) => Math.round(i < gracYears ? gracePayment : repayPayment));
+  const divD = yLabels.map(() => Math.round(monthlyDiv));
+  mChart = renderCashflowChart('m_cashflow_chart', mChart, yLabels, payD, divD);
+  renderMortgageSens(totalLoan, repayMonths, monthlyDiv, v('m_new_rate'));
 }
 
 // ─── 信貸方案 ─────────────────────────────────────────────────────────────
@@ -1112,6 +1304,22 @@ function calcLoan() {
     </tr>`;
   }
   document.getElementById('l_amort_body').innerHTML = rows;
+
+  // ── Chart + Sensitivity ──────────────────────────────────────────────────
+  const totalYears = Math.ceil(months / 12);
+  const yLabels = Array.from({length: totalYears}, (_, i) => lang === 'zh' ? `第${i+1}年` : `Y${i+1}`);
+  const payD = yLabels.map((_, i) => {
+    const mo = (i + 1) * 12;
+    return Math.round(mo <= grace ? gracePayment : repayPayment);
+  });
+  const divD = yLabels.map((_, i) => {
+    const mo = (i + 1) * 12;
+    if (mo > refiMo2) return Math.round(divAfterRefi2);
+    if (mo > refiMo)  return Math.round(divAfterRefi);
+    return Math.round(monthlyDiv);
+  });
+  lChart = renderCashflowChart('l_cashflow_chart', lChart, yLabels, payD, divD);
+  renderLoanSens(P, months, v('l_rate'), monthlyDiv);
 }
 
 // 範例預設值
@@ -1446,6 +1654,109 @@ function clearDivRows() {
   calcMulti();
 }
 
+// ─── 圖表 & 敏感度分析 ────────────────────────────────────────────────────
+let mChart = null, lChart = null;
+
+function renderCashflowChart(canvasId, existing, labels, payData, divData) {
+  if (typeof Chart === 'undefined') return existing;
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return existing;
+  if (existing) existing.destroy();
+
+  const netData = payData.map((p, i) => divData[i] - p);
+  return new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar', label: t('chart_netcf'), data: netData, order: 2, yAxisID: 'y',
+          backgroundColor: netData.map(v => v >= 0 ? 'rgba(39,174,96,0.5)' : 'rgba(231,76,60,0.5)'),
+          borderColor:      netData.map(v => v >= 0 ? '#27ae60' : '#e74c3c'),
+          borderWidth: 1,
+        },
+        {
+          type: 'line', label: t('chart_payment'), data: payData, order: 1, yAxisID: 'y',
+          borderColor: '#e74c3c', backgroundColor: 'transparent',
+          borderWidth: 2, pointRadius: 3, tension: 0,
+        },
+        {
+          type: 'line', label: t('chart_dividend'), data: divData, order: 1, yAxisID: 'y',
+          borderColor: '#27ae60', backgroundColor: 'transparent',
+          borderWidth: 2, pointRadius: 3, tension: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: $${fmt(Math.round(c.raw))}` } }
+      },
+      scales: {
+        y: {
+          ticks: { font: { size: 9 }, callback: v => Math.abs(v)>=10000 ? '$'+Math.round(v/1000)+'k' : '$'+fmt(v) },
+          grid: { color: 'rgba(0,0,0,0.06)' }
+        },
+        x: { ticks: { font: { size: 9 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function renderMortgageSens(totalLoan, repayMonths, monthlyDiv, baseRate) {
+  const el = document.getElementById('m_sensitivity'); if (!el) return;
+  const th = 'padding:4px 5px;font-size:0.68rem;font-weight:700;color:#1a6eb5;background:#e8f2fc;white-space:nowrap;text-align:right;';
+  const td = (v, s='') => `<td style="padding:4px 5px;font-size:0.71rem;text-align:right;border-bottom:1px solid #eef2f7;${s}">${v}</td>`;
+  const rows = [-1, -0.5, 0, 0.5, 1].map(off => {
+    const r = baseRate + off; if (r <= 0) return '';
+    const mr = r / 100 / 12;
+    const gp = totalLoan * mr, rp = pmt(totalLoan, mr, repayMonths);
+    const cfG = monthlyDiv - gp, cfR = monthlyDiv - rp;
+    const base = off === 0;
+    const bg = base ? 'background:#e8f2fc;' : '', fw = base ? 'font-weight:700;' : '';
+    const cc = v => v>=0 ? 'color:#27ae60;' : 'color:#e74c3c;';
+    return `<tr style="${bg}">
+      ${td(`${r.toFixed(2)}%${base?' <span style="color:#1a6eb5;font-size:0.65rem;">'+t('sens_current')+'</span>':''}`, fw)}
+      ${td('$'+fmt(Math.round(gp)), fw)} ${td('$'+fmt(Math.round(rp)), fw)}
+      ${td(fmtMoney(cfG), cc(cfG)+fw)} ${td(fmtMoney(cfR), cc(cfR)+fw)}
+    </tr>`;
+  }).join('');
+  el.innerHTML = `<table style="width:100%;border-collapse:collapse;">
+    <thead><tr>
+      <th style="${th}text-align:left;">${t('sens_rate')}</th>
+      <th style="${th}">${t('sens_grace_pay')}</th><th style="${th}">${t('sens_repay_pay')}</th>
+      <th style="${th}">${t('sens_grace_cf')}</th><th style="${th}">${t('sens_repay_cf')}</th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderLoanSens(P, months, baseRate, monthlyDiv) {
+  const el = document.getElementById('l_sensitivity'); if (!el) return;
+  const th = 'padding:4px 5px;font-size:0.68rem;font-weight:700;color:#1a6eb5;background:#e8f2fc;white-space:nowrap;text-align:right;';
+  const td = (v, s='') => `<td style="padding:4px 5px;font-size:0.71rem;text-align:right;border-bottom:1px solid #eef2f7;${s}">${v}</td>`;
+  const rows = [-1, -0.5, 0, 0.5, 1].map(off => {
+    const r = baseRate + off; if (r <= 0) return '';
+    const mr = r / 100 / 12;
+    const rp = mr > 0 ? pmt(P, mr, months) : P / months;
+    const net = monthlyDiv - rp;
+    const base = off === 0;
+    const bg = base ? 'background:#e8f2fc;' : '', fw = base ? 'font-weight:700;' : '';
+    const cc = v => v>=0 ? 'color:#27ae60;' : 'color:#e74c3c;';
+    return `<tr style="${bg}">
+      ${td(`${r.toFixed(1)}%${base?' <span style="color:#1a6eb5;font-size:0.65rem;">'+t('sens_current')+'</span>':''}`, fw)}
+      ${td('$'+fmt(Math.round(rp)), fw)}
+      ${td('$'+fmt(Math.round(monthlyDiv)), fw)}
+      ${td(fmtMoney(net), cc(net)+fw)}
+    </tr>`;
+  }).join('');
+  el.innerHTML = `<table style="width:100%;border-collapse:collapse;">
+    <thead><tr>
+      <th style="${th}text-align:left;">${t('sens_rate')}</th>
+      <th style="${th}">${t('sens_monthly_pay')}</th>
+      <th style="${th}">${t('chart_dividend')}</th>
+      <th style="${th}">${t('sens_net')}</th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
 // ─── 品牌設定 ──────────────────────────────────────────────────────────────
 let brandSettings = { name: '', logo: '', disclaimerZh: '', disclaimerEn: '' };
 
@@ -1466,6 +1777,20 @@ function applyBrand() {
   } else {
     titleEl.textContent = t('app_title');
   }
+  updateDisclaimers();
+}
+
+function updateDisclaimers() {
+  const title = `⚠️ ${t('pdf_disclaimer')}`;
+  const text  = lang === 'zh'
+    ? (brandSettings.disclaimerZh || t('pdf_disclaimer_text'))
+    : (brandSettings.disclaimerEn || t('pdf_disclaimer_text'));
+  ['m', 'l', 'multi'].forEach(sfx => {
+    const titleEl = document.getElementById(`disc_title_${sfx}`);
+    const textEl  = document.getElementById(`disc_text_${sfx}`);
+    if (titleEl) titleEl.textContent = title;
+    if (textEl)  textEl.textContent  = text;
+  });
 }
 
 function openSettings() {
@@ -1939,6 +2264,344 @@ function buildMultiPDFBody() {
   `<div style="display:flex;flex-wrap:wrap;gap:0;margin-bottom:12px;">${summaryItems}</div>`;
 }
 
+// ─── Tooltip 說明 ──────────────────────────────────────────────────────────
+const FIELD_TIPS = {
+  m_loan:        { zh: '目前向銀行借貸的房貸本金總額', en: 'Total principal of your existing mortgage' },
+  m_years:       { zh: '貸款總年限（含寬限期）', en: 'Total loan term including grace period' },
+  m_grace:       { zh: '寬限期間只需付利息、不用還本金，月付金額較低', en: 'Grace period: interest-only payments, no principal repayment' },
+  m_rate:        { zh: '目前房貸適用的年利率', en: 'Current annual interest rate on your mortgage' },
+  m_value:       { zh: '房屋目前市場估值，用於計算可增貸上限', en: "Property's current market value, used to calculate max additional loan" },
+  m_ltv:         { zh: '銀行可貸金額佔市值的上限比例，如 80% 表示市值 3,000 萬最多貸 2,400 萬', en: 'Max loan-to-value ratio (e.g. 80% means max loan = 80% of property value)' },
+  m_new_rate:    { zh: '增貸整合後新房貸的年利率', en: 'New annual rate on the refinanced combined mortgage' },
+  m_div_rate:    { zh: '配息基金每年發放配息的比率。如 8% 表示每投入 100 萬每年配 8 萬', en: 'Annual dividend yield of the fund (e.g. 8% = $80k/yr per $1M invested)' },
+  m_repay_other: { zh: '增貸資金中用於清償信貸或其他負債的金額', en: 'Amount from additional loan used to repay other existing debts' },
+  m_reserve:     { zh: '從增貸資金預留的現金備用金，不投入基金', en: 'Cash reserve held back from additional loan, not invested in fund' },
+  l_loan:        { zh: '向銀行申請的信用貸款總金額', en: 'Total personal loan amount applied for' },
+  l_months:      { zh: '貸款分幾個月還清，如 84 = 7 年', en: 'Repayment term in months (e.g. 84 = 7 years)' },
+  l_grace:       { zh: '前幾個月只需繳納利息、不用還本金', en: 'Number of months with interest-only payments before principal repayment begins' },
+  l_rate:        { zh: '信用貸款的年利率，通常高於房貸利率', en: 'Annual interest rate on the personal loan, typically higher than mortgage' },
+  l_fee:         { zh: '申辦信貸時銀行一次性收取的手續費', en: 'One-time bank processing fee at origination' },
+  l_invest:      { zh: '將信貸資金投入配息基金的金額，通常等於貸款金額', en: 'Amount invested in dividend fund, usually equal to the loan amount' },
+  l_div_rate:    { zh: '配息基金每年發放配息的比率', en: 'Annual dividend yield of the fund' },
+  l_refi_yr:     { zh: '於第幾年末申辦新信貸還清舊貸款（借新還舊），貸款餘額差額再追加投入基金', en: 'Year-end refinance: new loan repays old balance; surplus cash is reinvested in fund' },
+};
+
+// ── Tooltip JS engine (body-level bubble bypasses overflow:hidden on .field label) ──
+function showTip(spanEl) {
+  const bubble = document.getElementById('tip-bubble');
+  if (!bubble) return;
+  bubble.textContent = spanEl.getAttribute('data-tip');
+  bubble.style.display = 'block';
+  bubble.style.visibility = 'hidden';
+  // Measure after render, then position
+  const rect = spanEl.getBoundingClientRect();
+  const bw   = bubble.offsetWidth;
+  const bh   = bubble.offsetHeight;
+  let left   = rect.left + rect.width / 2 - bw / 2;
+  let top    = rect.top - bh - 10;
+  // Clamp within viewport
+  if (left < 6)                         left = 6;
+  if (left + bw > window.innerWidth - 6) left = window.innerWidth - bw - 6;
+  if (top  < 6)                         top  = rect.bottom + 8; // flip below if at top of screen
+  bubble.style.left = left + 'px';
+  bubble.style.top  = top  + 'px';
+  bubble.style.visibility = 'visible';
+}
+function hideTip() {
+  const b = document.getElementById('tip-bubble');
+  if (b) b.style.display = 'none';
+}
+
+function initTooltips() {
+  // Create body-level bubble once
+  if (!document.getElementById('tip-bubble')) {
+    const b = document.createElement('div');
+    b.id = 'tip-bubble';
+    document.body.appendChild(b);
+  }
+  Object.entries(FIELD_TIPS).forEach(([fieldId, tips]) => {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    const field = input.closest('.field');
+    if (!field) return;
+    const label = field.querySelector('label');
+    if (!label || label.querySelector('.tip')) return;
+    const span = document.createElement('span');
+    span.className = 'tip';
+    span.setAttribute('data-field', fieldId);
+    span.setAttribute('data-tip', tips[lang] || tips.zh);
+    span.textContent = '❓';
+    // Desktop hover
+    span.addEventListener('mouseenter', () => showTip(span));
+    span.addEventListener('mouseleave', hideTip);
+    // Mobile tap toggle
+    span.addEventListener('touchstart', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      const b = document.getElementById('tip-bubble');
+      if (b && b.style.display !== 'none') { hideTip(); } else { showTip(span); }
+    }, { passive: false });
+    label.appendChild(span);
+  });
+  // Hide tooltip on touch outside
+  document.addEventListener('touchstart', e => {
+    if (!e.target.closest('.tip')) hideTip();
+  }, { passive: true });
+}
+
+function refreshTooltips() {
+  document.querySelectorAll('.tip[data-field]').forEach(el => {
+    const tips = FIELD_TIPS[el.getAttribute('data-field')];
+    if (tips) el.setAttribute('data-tip', tips[lang] || tips.zh);
+  });
+}
+
+// ── Export dropdown ────────────────────────────────────────────────────────
+function toggleExportMenu(e) {
+  e.stopPropagation();
+  document.getElementById('export-dropdown').classList.toggle('open');
+}
+function exportPDFFromMenu() {
+  document.getElementById('export-dropdown').classList.remove('open');
+  exportPDF();
+}
+function exportExcelFromMenu() {
+  document.getElementById('export-dropdown').classList.remove('open');
+  exportExcel();
+}
+// Close dropdown on outside click or touch
+document.addEventListener('click', () => {
+  const dd = document.getElementById('export-dropdown');
+  if (dd) dd.classList.remove('open');
+});
+document.addEventListener('touchstart', e => {
+  if (!e.target.closest('.export-wrap')) {
+    const dd = document.getElementById('export-dropdown');
+    if (dd) dd.classList.remove('open');
+  }
+}, { passive: true });
+
+// ─── Excel 匯出 ───────────────────────────────────────────────────────────
+function exportExcel() {
+  if (typeof XLSX === 'undefined') {
+    alert(lang === 'zh' ? 'Excel 功能載入中，請稍後重試' : 'Excel library loading, please retry');
+    return;
+  }
+  const panelId = getCurrentPanelId();
+  if (panelId === 'multi') {
+    alert(lang === 'zh' ? '多重貸款方案目前不支援 Excel 匯出' : 'Multi-loan Excel export not supported yet');
+    return;
+  }
+  const tbodyId  = panelId === 'mortgage' ? 'm_amort_body' : 'l_amort_body';
+  const titleKey = panelId === 'mortgage' ? 'm_table_title' : 'l_table_title';
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody || !tbody.querySelector('tr')) {
+    alert(lang === 'zh' ? '請先執行試算再匯出' : 'Please calculate first');
+    return;
+  }
+  const btn = document.getElementById('btn_excel');
+  btn.textContent = lang === 'zh' ? '⏳ 產生中…' : '⏳ Wait…';
+  btn.disabled = true;
+
+  const table   = tbody.closest('table');
+  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+  const data    = [headers];
+  tbody.querySelectorAll('tr').forEach(tr => {
+    const row = [];
+    tr.querySelectorAll('td').forEach((td, ci) => {
+      if (ci === 0) {
+        // 期數欄：只取開頭數字，去掉 badge 文字
+        const m = td.textContent.match(/^(\d+)/);
+        row.push(m ? parseInt(m[1]) : td.textContent.trim());
+      } else {
+        const raw = td.textContent.trim().replace(/[$＄,]/g, '').replace('−', '-').replace('+', '').trim();
+        const n   = parseFloat(raw.replace(/[^\d.\-]/g, ''));
+        row.push(isNaN(n) ? td.textContent.trim() : n);
+      }
+    });
+    data.push(row);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = headers.map(() => ({ wch: 16 }));
+  const wb = XLSX.utils.book_new();
+  const sheetName = t(titleKey).replace(/[\\\/\?\*\[\]:]/g, '').slice(0, 31) || 'Sheet1';
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+  const now  = new Date();
+  const ds   = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+  const brand = (brandSettings.name || (lang === 'zh' ? '試算' : 'Report')).replace(/[\\\/\?\*\[\]:]/g, '');
+  XLSX.writeFile(wb, `${brand}_攤還表_${ds}.xlsx`);
+
+  btn.textContent = '📊 Excel';
+  btn.disabled = false;
+}
+
+// ─── 方案比較 ─────────────────────────────────────────────────────────────
+function calcMortgageMetrics(vals) {
+  const origLoan   = +vals.m_loan        || 0;
+  const years      = +vals.m_years       || 0;
+  const gracYears  = +vals.m_grace       || 0;
+  const mktVal     = +vals.m_value       || 0;
+  const ltv        = (+vals.m_ltv        || 0) / 100;
+  const newRate    = (+vals.m_new_rate   || 0) / 100;
+  const divRate    = (+vals.m_div_rate   || 0) / 100;
+  const repayOther = +vals.m_repay_other || 0;
+  const reserve    = +vals.m_reserve     || 0;
+  const addlLoan   = Math.max(0, mktVal * ltv - origLoan);
+  const totalLoan  = origLoan + addlLoan;
+  const invest     = addlLoan - repayOther - reserve;
+  const monthlyDiv = invest > 0 ? invest * divRate / 12 : 0;
+  const mR         = newRate / 12;
+  const repayMo    = Math.max(0, (years - gracYears) * 12);
+  const gracePay   = totalLoan * mR;
+  const repayPay   = repayMo > 0 && mR > 0 ? pmt(totalLoan, mR, repayMo) : 0;
+  return [
+    { key: 'cmp_total_loan', v: totalLoan },
+    { key: 'cmp_add_loan',   v: addlLoan },
+    { key: 'cmp_invest',     v: invest },
+    { key: 'cmp_monthly_div', v: monthlyDiv },
+    { key: 'cmp_grace_pay',  v: gracePay },
+    { key: 'cmp_repay_pay',  v: repayPay },
+    { key: 'cmp_grace_cf',   v: monthlyDiv - gracePay },
+    { key: 'cmp_repay_cf',   v: monthlyDiv - repayPay },
+  ];
+}
+
+function calcLoanPlanMetrics(vals) {
+  const P        = +vals.l_loan       || 0;
+  const months   = +vals.l_months     || 0;
+  const grace    = +vals.l_grace      || 0;
+  const rate     = (+vals.l_rate      || 0) / 100;
+  const invest   = +vals.l_invest     || 0;
+  const divRate  = (+vals.l_div_rate  || 0) / 100;
+  const refiYr   = +vals.l_refi_yr    || 0;
+  const refiMo   = refiYr * 12;
+  const mr       = rate / 12;
+  const repayPay = mr > 0 ? pmt(P, mr, months) : (P / months || 0);
+  const monthlyDiv = invest * divRate / 12;
+  let balAtRefi = P;
+  { let b = P;
+    for (let i = 1; i <= Math.min(refiMo, months); i++) {
+      const intr = b * mr;
+      if (i > grace) b = Math.max(0, b - (repayPay - intr));
+    }
+    balAtRefi = b;
+  }
+  const cashRefi    = P - balAtRefi;
+  const divPostRefi = (invest + cashRefi) * divRate / 12;
+  let totalPaid = +vals.l_fee || 0;
+  { let b = P;
+    for (let i = 1; i <= months; i++) {
+      const intr = b * mr;
+      if (i <= grace) { totalPaid += intr; }
+      else { totalPaid += repayPay; b = Math.max(0, b - (repayPay - intr)); }
+    }
+  }
+  return [
+    { key: 'cmp_loan_amt',    v: P },
+    { key: 'cmp_monthly_pay', v: repayPay },
+    { key: 'cmp_monthly_div', v: monthlyDiv },
+    { key: 'cmp_net_monthly', v: monthlyDiv - repayPay },
+    { key: 'cmp_refi_cash',   v: cashRefi },
+    { key: 'cmp_refi_div',    v: divPostRefi },
+    { key: 'cmp_total_paid',  v: totalPaid },
+  ];
+}
+
+function openCompare() {
+  if (savedPlans.length < 2) {
+    alert(lang === 'zh' ? '需要至少 2 個已儲存方案才能比較' : 'Need at least 2 saved plans to compare');
+    return;
+  }
+  const opts = savedPlans.map(p => `<option value="${p.id}">${p.name} (${p.panelLabel} · ${p.date})</option>`).join('');
+  document.getElementById('cmp-sel-a').innerHTML = opts;
+  document.getElementById('cmp-sel-b').innerHTML = opts;
+  document.getElementById('cmp-sel-a').value = savedPlans[0].id;
+  document.getElementById('cmp-sel-b').value = savedPlans[1].id;
+  document.getElementById('cmp-result').innerHTML = '';
+  document.getElementById('modal-compare').style.display = 'flex';
+}
+function closeCompare() { document.getElementById('modal-compare').style.display = 'none'; }
+
+function runCompare() {
+  const idA   = +document.getElementById('cmp-sel-a').value;
+  const idB   = +document.getElementById('cmp-sel-b').value;
+  const resultEl = document.getElementById('cmp-result');
+  if (idA === idB) {
+    resultEl.innerHTML = `<p style="color:var(--muted);text-align:center;padding:12px;font-size:0.82rem;">${lang==='zh'?'請選擇兩個不同方案':'Please select two different plans'}</p>`;
+    return;
+  }
+  const planA = savedPlans.find(p => p.id === idA);
+  const planB = savedPlans.find(p => p.id === idB);
+  if (!planA || !planB) return;
+
+  const getMetrics = plan => {
+    if (plan.panel === 'mortgage') return calcMortgageMetrics(plan.values);
+    if (plan.panel === 'loan')     return calcLoanPlanMetrics(plan.values);
+    return null;
+  };
+  const mA = getMetrics(planA), mB = getMetrics(planB);
+  if (!mA || !mB) {
+    resultEl.innerHTML = `<p style="color:var(--muted);text-align:center;padding:12px;font-size:0.82rem;">${lang==='zh'?'多重貸款方案暫不支援比較':'Multi-loan plan comparison not supported'}</p>`;
+    return;
+  }
+
+  const same = planA.panel === planB.panel;
+  const rows = [];
+
+  if (same) {
+    mA.forEach((m, i) => {
+      const vB = mB[i]?.v ?? 0;
+      const isCF = m.key.endsWith('_cf') || m.key === 'cmp_net_monthly';
+      rows.push({ label: t(m.key), vA: m.v, vB, isCF });
+    });
+  } else {
+    // 跨類型：只比較共通指標
+    const getV = (metrics, ...keys) => {
+      for (const k of keys) { const m = metrics.find(x => x.key === k); if (m) return m.v; }
+      return 0;
+    };
+    rows.push({ label: lang==='zh'?'貸款金額':'Loan Amount',
+      vA: getV(mA, 'cmp_total_loan', 'cmp_loan_amt'),
+      vB: getV(mB, 'cmp_total_loan', 'cmp_loan_amt'), isCF: false });
+    rows.push({ label: lang==='zh'?'月付金（還本期）':'Monthly Payment',
+      vA: getV(mA, 'cmp_repay_pay', 'cmp_monthly_pay'),
+      vB: getV(mB, 'cmp_repay_pay', 'cmp_monthly_pay'), isCF: false });
+    rows.push({ label: t('cmp_monthly_div'),
+      vA: getV(mA, 'cmp_monthly_div'), vB: getV(mB, 'cmp_monthly_div'), isCF: false });
+    rows.push({ label: lang==='zh'?'月淨現金流（還本期）':'Monthly Net CF',
+      vA: getV(mA, 'cmp_repay_cf', 'cmp_net_monthly'),
+      vB: getV(mB, 'cmp_repay_cf', 'cmp_net_monthly'), isCF: true });
+  }
+
+  const CC = (v, isCF) => isCF ? (v >= 0 ? 'color:#27ae60;' : 'color:#e74c3c;') : '';
+  const tableRows = rows.map((r, i) => {
+    const bg = i % 2 === 0 ? '' : 'background:#f7fafd;';
+    const fmtV = (v, isCF) => {
+      const sign = isCF ? (v >= 0 ? '▲ +' : '▼ ') : '';
+      return `${sign}$${fmt(Math.round(Math.abs(v)))}`;
+    };
+    return `<tr style="${bg}">
+      <td style="padding:6px 8px;font-size:0.76rem;color:var(--muted);border-bottom:1px solid #eef2f7;">${r.label}</td>
+      <td style="padding:6px 8px;font-size:0.82rem;font-weight:700;text-align:right;border-bottom:1px solid #eef2f7;${CC(r.vA, r.isCF)}">${fmtV(r.vA, r.isCF)}</td>
+      <td style="padding:6px 8px;font-size:0.82rem;font-weight:700;text-align:right;border-bottom:1px solid #eef2f7;${CC(r.vB, r.isCF)}">${fmtV(r.vB, r.isCF)}</td>
+    </tr>`;
+  }).join('');
+
+  const crossNote = !same
+    ? `<div style="font-size:0.72rem;color:var(--muted);text-align:center;margin-bottom:8px;padding:4px;background:#f7fafd;border-radius:5px;">※ ${lang==='zh'?'不同方案類型，僅顯示共通指標':'Different plan types — showing common metrics only'}</div>` : '';
+
+  resultEl.innerHTML = crossNote + `<table style="width:100%;border-collapse:collapse;">
+    <thead><tr>
+      <th style="padding:6px 8px;font-size:0.72rem;font-weight:700;color:var(--muted);text-align:left;border-bottom:2px solid var(--primary-light);">${lang==='zh'?'指標':'Metric'}</th>
+      <th style="padding:6px 8px;font-size:0.82rem;font-weight:800;color:var(--primary);text-align:right;border-bottom:2px solid var(--primary-light);">🅐 ${planA.name}</th>
+      <th style="padding:6px 8px;font-size:0.82rem;font-weight:800;color:var(--accent);text-align:right;border-bottom:2px solid var(--primary-light);">🅑 ${planB.name}</th>
+    </tr></thead>
+    <tbody>${tableRows}</tbody>
+  </table>`;
+}
+
 // 初始加入各一筆
 addLoanRow();
 addDivRow();
@@ -1953,8 +2616,10 @@ function toggleCollapse(bodyId, iconId) {
 // Init
 calcMortgage();
 calcLoan();
-loadBrandFromStorage();
+loadBrandFromStorage();   // calls applyBrand() → updateDisclaimers()
 loadPlansFromStorage();
+initTooltips();
+updateDisclaimers();      // ensure default text renders even before brand loads
 </script>
 </body>
 </html>
