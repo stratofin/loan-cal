@@ -102,6 +102,23 @@
   .result-item.negative .r-value { color: var(--red); }
   .result-item.accent .r-value { color: var(--accent); }
 
+  /* 投資配息多筆項目 */
+  .invest-item { position: relative; }
+  .invest-item + .invest-item { border-top: 1px dashed var(--border); margin-top: 7px; padding-top: 7px; }
+  .invest-tag {
+    display: inline-block; font-size: 0.68rem; font-weight: 800;
+    color: var(--primary); background: var(--primary-light);
+    border-radius: 4px; padding: 1px 7px; margin-bottom: 4px;
+  }
+
+  /* Card 內嵌試算結果 */
+  .card-results { margin-top: 8px; padding-top: 7px; border-top: 2px dashed var(--primary-light); }
+  .cr-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+  .cr-row .cr-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+  .cr-row .cr-value { font-size: 0.86rem; font-weight: 700; color: var(--primary-dark); }
+  .cr-row .cr-value.pos { color: var(--green); }
+  .cr-row .cr-value.accent { color: var(--accent); }
+
   /* Summary block */
   .summary-block {
     background: linear-gradient(135deg,#f0f7ff,#e8f2fc);
@@ -495,6 +512,22 @@
   }
   .cmp-select:focus { outline: none; border-color: var(--primary); }
 
+  /* 文字縮放（單一格：A + 上下箭頭） */
+  .font-zoom {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,0.18); color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.55); border-radius: 6px;
+    padding: 1px 7px; user-select: none;
+  }
+  .fz-label { font-size: 0.95rem; font-weight: 800; line-height: 1; }
+  .fz-btns { display: flex; flex-direction: column; }
+  .fz-btns button {
+    background: none; border: none; color: #fff; cursor: pointer;
+    font-size: 0.55rem; line-height: 1.1; padding: 1px 2px; opacity: 0.8;
+    transition: all 0.12s;
+  }
+  .fz-btns button:hover { opacity: 1; transform: scale(1.25); }
+
   /* 金額輸入單位選擇 */
   .unit-select {
     background: rgba(255,255,255,0.18); color: #fff;
@@ -526,6 +559,13 @@
   <div style="flex:1;">
     <h1 id="header-title" data-i18n="app_title">房貸 · 信貸 試算工具</h1>
     <p data-i18n="app_subtitle">整合配息基金策略，輕鬆規劃您的財務計畫</p>
+  </div>
+  <div class="font-zoom" title="文字大小">
+    <span class="fz-label">A</span>
+    <div class="fz-btns">
+      <button onclick="zoomText(1)"  title="文字放大">▲</button>
+      <button onclick="zoomText(-1)" title="文字縮小">▼</button>
+    </div>
   </div>
   <select class="unit-select" id="unit_select" onchange="setUnit(parseFloat(this.value))" title="金額輸入單位">
     <option value="1" selected>單位：元</option>
@@ -569,7 +609,9 @@
         <div class="field"><label data-i18n="m_loan_amt">原本貸款金額</label><div class="input-wrap"><input type="number" class="money" id="m_loan" value="16000000" oninput="autoFillInvest();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
         <div class="field"><label data-i18n="m_loan_years">貸款年限</label><div class="input-wrap"><input type="number" id="m_years" value="30" oninput="calcMortgage()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
         <div class="field"><label data-i18n="m_grace">寬限期</label><div class="input-wrap"><input type="number" id="m_grace" value="3" oninput="calcMortgage()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
-        <div class="field"><label data-i18n="m_rate">原貸款年利率</label><div class="input-wrap"><input type="number" id="m_rate" value="1.9" step="0.01" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="m_grace_rate">寬限期利率</label><div class="input-wrap"><input type="number" id="m_grace_rate" value="1.9" step="0.01" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="m_rate">寬限後年利率</label><div class="input-wrap"><input type="number" id="m_rate" value="1.9" step="0.01" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+        <div class="card-results" id="m_orig_results"></div>
       </div>
 
       <!-- 增額貸款資料（獨立一組） -->
@@ -583,12 +625,13 @@
           </div>
         </div>
         <div id="m_addl_body">
-          <div class="field"><label data-i18n="m_value">房屋增額市值預估</label><div class="input-wrap"><input type="number" class="money" id="m_value" value="38000000" oninput="autoFillInvest();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+          <div class="field"><label data-i18n="m_value">銀行增貸估值</label><div class="input-wrap"><input type="number" class="money" id="m_value" value="38000000" oninput="autoFillInvest();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
           <div class="field"><label data-i18n="m_ltv">可貸成數</label><div class="input-wrap"><input type="number" id="m_ltv" value="80" step="1" oninput="autoFillInvest();calcMortgage()"><span class="unit">%</span></div></div>
           <div class="field"><label data-i18n="m_new_rate">新貸款利率</label><div class="input-wrap"><input type="number" id="m_new_rate" value="2.07" step="0.01" oninput="calcMortgage()"><span class="unit">%</span></div></div>
           <div class="field"><label data-i18n="m_repay_other">清償原有貸款</label><div class="input-wrap"><input type="number" class="money" id="m_repay_other" value="0" oninput="autoFillInvest();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
           <div class="field"><label data-i18n="m_reserve">預留預備金</label><div class="input-wrap"><input type="number" class="money" id="m_reserve" value="0" oninput="autoFillInvest();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
         </div>
+        <div class="card-results" id="m_addl_results"></div>
       </div>
 
       <!-- 投資配息計畫（獨立一組） -->
@@ -596,12 +639,19 @@
         <div class="card-title-row" style="margin-bottom:10px;padding-bottom:7px;border-bottom:2px solid var(--primary-light);">
           <div class="card-title" data-i18n="m_plan_title">💰 投資配息計畫</div>
           <div class="action-btns">
+            <button class="btn-pm btn-minus" onclick="removeInvestRow()" data-i18n-title="tip_remove" title="移除最後一筆">－</button>
+            <button class="btn-pm btn-plus"  onclick="addInvestRow()"    data-i18n-title="tip_add"    title="新增一筆">＋</button>
             <button class="btn-clear-sm" onclick="clearGroup('m_invest')" data-i18n="btn_clear_fields">🗑 清除</button>
             <button class="btn-restore-sm" id="btn_m_inv_restore" onclick="restoreGroup('m_invest')" data-i18n="btn_restore_snap" disabled>↩ 還原</button>
           </div>
         </div>
-        <div class="field"><label data-i18n="m_invest_amt_lbl">投入配息金額</label><div class="input-wrap"><input type="number" class="money" id="m_invest_amt" value="14400000" oninput="calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
-        <div class="field"><label data-i18n="m_yield_rate">預估年化報酬</label><div class="input-wrap"><input type="number" id="m_div_rate" value="8" step="0.1" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+        <div id="m_invest_rows">
+          <div class="invest-item" id="mi_item_1">
+            <div class="field"><label data-i18n="m_invest_amt_lbl">投入配息金額</label><div class="input-wrap"><input type="number" class="money" id="m_invest_amt" value="14400000" oninput="calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+            <div class="field"><label data-i18n="m_yield_rate">預估年化報酬</label><div class="input-wrap"><input type="number" id="m_div_rate" value="8" step="0.1" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+          </div>
+        </div>
+        <div class="card-results" id="m_invest_results"></div>
       </div>
     </div>
 
@@ -619,9 +669,6 @@
       </div>
       <div id="m_payment_detail"></div>
     </div>
-
-    <!-- 試算結果 -->
-    <div class="result-grid" id="m_results"></div>
 
     <!-- 圖表 + 敏感度 -->
     <div class="grid-2" style="margin-bottom:10px;">
@@ -928,9 +975,9 @@ const i18n = {
     tab_mortgage:'🏠 房貸方案', tab_loan:'💳 信貸方案', tab_multi:'🧪 多重貸款配息',
     m_title:'🏦 原有房貸資料', btn_clear_example:'清除範例', btn_restore_example:'恢復範例',
     btn_clear_fields:'🗑 清除', btn_restore_snap:'↩ 還原', btn_restore_snap_ready:'↩ 還原 · 剛才',
-    m_loan_amt:'原本貸款金額', m_loan_years:'貸款年限', m_grace:'寬限期', m_rate:'原貸款年利率',
+    m_loan_amt:'原本貸款金額', m_loan_years:'貸款年限', m_grace:'寬限期', m_grace_rate:'寬限期利率', m_rate:'寬限後年利率',
     m_addl_title:'📋 增額貸款資料', m_addl_open:'▲ 收合', m_addl_close:'▼ 展開',
-    m_value:'房屋增額市值預估', m_ltv:'可貸成數', m_new_rate:'新貸款利率',
+    m_value:'銀行增貸估值', m_ltv:'可貸成數', m_new_rate:'新貸款利率',
     m_repay_other:'清償原有貸款', m_reserve:'預留預備金',
     m_plan_title:'💰 投資配息計畫', m_invest_amt_lbl:'投入配息金額', m_yield_rate:'預估年化報酬',
     m_div_rate:'年化配息率',
@@ -951,6 +998,8 @@ const i18n = {
     col_monthly_pay:'月付金', col_invest_amt:'投入配息金額（元）', col_div_rate:'年化配息率%', col_monthly_div:'每月配息',
     multi_loan_detail:'🏦 貸款分項明細', multi_div_detail:'📈 配息分項明細',
     mode_interest:'還利', mode_amort:'均攤',
+    orig_grace_pay:'原貸寬限期月付（利息）', orig_repay_pay:'原貸還本期月付（本利）',
+    sum_invest:'合計投入金額', sum_monthly_div:'合計每月配息',
     r_add_loan:'可增貸金額', r_total_loan:'總貸款金額', r_invest_amt:'投入基金金額',
     r_monthly_div:'每月基金配息', r_grace_pay:'寬限期月付（利息）', r_repay_pay:'還本期月付（本利）',
     r_monthly_pay:'月付金（還本期）', r_net_monthly:'配息後淨支出',
@@ -994,9 +1043,9 @@ const i18n = {
     tab_mortgage:'🏠 Mortgage', tab_loan:'💳 Personal Loan', tab_multi:'🧪 Multi-Loan',
     m_title:'🏦 Original Mortgage', btn_clear_example:'Clear Example', btn_restore_example:'Restore Example',
     btn_clear_fields:'🗑 Clear', btn_restore_snap:'↩ Restore', btn_restore_snap_ready:'↩ Restore · just now',
-    m_loan_amt:'Loan Amount', m_loan_years:'Loan Term', m_grace:'Grace Period', m_rate:'Annual Rate',
+    m_loan_amt:'Loan Amount', m_loan_years:'Loan Term', m_grace:'Grace Period', m_grace_rate:'Grace Period Rate', m_rate:'Post-Grace Rate',
     m_addl_title:'📋 Additional Loan', m_addl_open:'▲ Collapse', m_addl_close:'▼ Expand',
-    m_value:'Property Value (Refi)', m_ltv:'LTV Ratio', m_new_rate:'New Loan Rate',
+    m_value:'Bank Appraised Value', m_ltv:'LTV Ratio', m_new_rate:'New Loan Rate',
     m_repay_other:'Repay Existing Loan', m_reserve:'Cash Reserve',
     m_plan_title:'💰 Investment Plan', m_invest_amt_lbl:'Invested Amount', m_yield_rate:'Est. Annual Return',
     m_div_rate:'Dividend Rate',
@@ -1017,6 +1066,8 @@ const i18n = {
     col_monthly_pay:'Monthly', col_invest_amt:'Invested Amount', col_div_rate:'Div Rate%', col_monthly_div:'Monthly Div',
     multi_loan_detail:'🏦 Loan Breakdown', multi_div_detail:'📈 Dividend Breakdown',
     mode_interest:'Int.', mode_amort:'P+I',
+    orig_grace_pay:'Orig. Grace Pay (Int.)', orig_repay_pay:'Orig. Repayment (P+I)',
+    sum_invest:'Total Invested', sum_monthly_div:'Total Monthly Div',
     r_add_loan:'Additional Loan', r_total_loan:'Total Loan', r_invest_amt:'Fund Investment',
     r_monthly_div:'Monthly Dividend', r_grace_pay:'Grace Payment (Int.)', r_repay_pay:'Repayment (P+I)',
     r_monthly_pay:'Monthly Payment', r_net_monthly:'Net Monthly Cost',
@@ -1162,6 +1213,54 @@ function setUnit(nf, recalc = true) {
 function toYuanStr(s)   { if (s == null || String(s).trim() === '') return ''; const n = parseFloat(s); return isNaN(n) ? '' : String(n * unitFactor); }
 function fromYuanStr(s) { if (s == null || String(s).trim() === '') return ''; const n = parseFloat(s); return isNaN(n) ? '' : (unitFactor === 1 ? String(n) : String(+(n / unitFactor).toFixed(4))); }
 
+// ─── 整體文字放大 / 縮小 ──────────────────────────────────────────────────
+let zoomLevel = 1;
+function zoomText(dir) {
+  zoomLevel = Math.min(1.6, Math.max(0.7, +(zoomLevel + dir * 0.1).toFixed(2)));
+  document.body.style.zoom = zoomLevel;
+}
+
+// ─── 投資配息計畫：多筆投資項目 ──────────────────────────────────────────
+// 第 1 筆固定使用 m_invest_amt / m_div_rate（相容快照、方案儲存、自動帶入）
+let mInvestRows = [1];
+let mInvestSeq = 1;
+
+function investAmtId(idx)  { return idx === 0 ? 'm_invest_amt' : `mi_amt_${mInvestRows[idx]}`; }
+function investRateId(idx) { return idx === 0 ? 'm_div_rate'   : `mi_rate_${mInvestRows[idx]}`; }
+
+function addInvestRow() {
+  const id = ++mInvestSeq;
+  mInvestRows.push(id);
+  document.getElementById('m_invest_rows').insertAdjacentHTML('beforeend', `
+    <div class="invest-item" id="mi_item_${id}">
+      <div class="invest-tag">#${mInvestRows.length}</div>
+      <div class="field"><label data-i18n="m_invest_amt_lbl">${t('m_invest_amt_lbl')}</label><div class="input-wrap"><input type="number" class="money" id="mi_amt_${id}" oninput="calcMortgage()"><span class="unit" data-i18n="unit_twd">${unitLabel()}</span></div></div>
+      <div class="field"><label data-i18n="m_yield_rate">${t('m_yield_rate')}</label><div class="input-wrap"><input type="number" id="mi_rate_${id}" value="8" step="0.1" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+    </div>`);
+  calcMortgage();
+}
+
+function removeInvestRow() {
+  if (mInvestRows.length <= 1) return;
+  const id = mInvestRows.pop();
+  document.getElementById(`mi_item_${id}`)?.remove();
+  calcMortgage();
+}
+
+// 讀取所有投資項目 → { invest 合計, monthlyDiv 合計, items[] }（金額為元）
+function getMortgageInvest() {
+  let invest = 0, monthlyDiv = 0;
+  const items = [];
+  mInvestRows.forEach((rid, idx) => {
+    const a = moneyOf(investAmtId(idx));
+    const r = (parseFloat(document.getElementById(investRateId(idx))?.value) || 0) / 100;
+    const d = a * r / 12;
+    invest += a; monthlyDiv += d;
+    items.push({ a, r, d });
+  });
+  return { invest, monthlyDiv, items };
+}
+
 // ─── 圖表 / 敏感度分析卡片收合 ────────────────────────────────────────────
 const collapsedCards = {};
 function toggleCard(bodyId, btnId) {
@@ -1238,28 +1337,52 @@ function calcMortgage() {
   // 還本期月付
   const repayPayment = pmt(totalLoan, mNewRate, repayMonths);
 
-  // 投入基金（使用者直接輸入）
-  const invest     = v('m_invest_amt');
-  const monthlyDiv = invest > 0 ? invest * divRate / 12 : 0;
+  // 投入基金（可多筆，加總）
+  const investInfo = getMortgageInvest();
+  const invest     = investInfo.invest;
+  const monthlyDiv = investInfo.monthlyDiv;
 
   // 現金流
   const cf_grace   = monthlyDiv - gracePayment;
   const cf_repay   = monthlyDiv - repayPayment;
 
-  // 原貸款 (原利率) 月付參考
+  // 原貸款月付參考：寬限期用寬限期利率、寬限後用寬限後年利率
+  const origGraceRate = v('m_grace_rate') / 100;
   const mOrigRate  = origRate / 12;
-  const origGrace  = origLoan * mOrigRate;
+  const origGrace  = origLoan * origGraceRate / 12;
   const origRepay  = pmt(origLoan, mOrigRate, repayMonths);
 
-  // Results display
-  document.getElementById('m_results').innerHTML = `
-    <div class="result-item"><div class="r-label">${t('r_add_loan')}</div><div class="r-value">$${fmt(addlLoan)}</div></div>
-    <div class="result-item"><div class="r-label">${t('r_total_loan')}</div><div class="r-value">$${fmt(totalLoan)}</div></div>
-    <div class="result-item"><div class="r-label">${t('r_invest_amt')}</div><div class="r-value">$${fmt(invest)}</div></div>
-    <div class="result-item positive"><div class="r-label">${t('r_monthly_div')}</div><div class="r-value">$${fmt(monthlyDiv)}</div></div>
-    <div class="result-item"><div class="r-label">${t('r_grace_pay')}</div><div class="r-value">$${fmt(gracePayment)}</div></div>
-    <div class="result-item"><div class="r-label">${t('r_repay_pay')}</div><div class="r-value">$${fmt(repayPayment)}</div></div>
-  `;
+  // 各卡片內嵌試算結果（金額一律以「元」顯示）
+  const crRow = (label, value, cls = '') =>
+    `<div class="cr-row"><span class="cr-label">${label}</span><span class="cr-value ${cls}">${value}</span></div>`;
+
+  // 🏦 原有房貸：兩段利率下的月付參考
+  document.getElementById('m_orig_results').innerHTML =
+    crRow(`${t('orig_grace_pay')}（${(origGraceRate * 100).toFixed(2)}%）`, '$' + fmt(origGrace)) +
+    crRow(`${t('orig_repay_pay')}（${(origRate * 100).toFixed(2)}%）`, '$' + fmt(origRepay));
+
+  // 📋 增額貸款：可增貸/總貸款 + 整合後月付
+  document.getElementById('m_addl_results').innerHTML =
+    crRow(t('r_add_loan'), '$' + fmt(addlLoan), 'accent') +
+    crRow(t('r_total_loan'), '$' + fmt(totalLoan)) +
+    crRow(t('r_grace_pay'), '$' + fmt(gracePayment)) +
+    crRow(t('r_repay_pay'), '$' + fmt(repayPayment));
+
+  // 💰 投資配息：每筆分別小結，多筆時加總
+  let investHtml = '';
+  if (investInfo.items.length > 1) {
+    investInfo.items.forEach((it, i) => {
+      investHtml += crRow(`#${i + 1} ${t('r_invest_amt')}（${(it.r * 100).toFixed(1)}%）`, '$' + fmt(it.a));
+      investHtml += crRow(`#${i + 1} ${t('r_monthly_div')}`, '$' + fmt(it.d) + t('mo_sfx'), 'pos');
+    });
+    investHtml += crRow(t('sum_invest'), '$' + fmt(invest), 'accent');
+    investHtml += crRow(t('sum_monthly_div'), '$' + fmt(monthlyDiv) + t('mo_sfx'), 'pos');
+  } else {
+    investHtml =
+      crRow(t('r_invest_amt'), '$' + fmt(invest)) +
+      crRow(t('r_monthly_div'), '$' + fmt(monthlyDiv) + t('mo_sfx'), 'pos');
+  }
+  document.getElementById('m_invest_results').innerHTML = investHtml;
 
   const box1 = document.getElementById('m_cf1_box');
   const box2 = document.getElementById('m_cf2_box');
@@ -1498,7 +1621,7 @@ function calcLoan() {
 
 // 範例預設值
 const MORTGAGE_DEFAULTS = {
-  m_loan: '16000000', m_years: '30', m_grace: '3', m_rate: '1.9',
+  m_loan: '16000000', m_years: '30', m_grace: '3', m_grace_rate: '1.9', m_rate: '1.9',
   m_value: '38000000', m_ltv: '80', m_new_rate: '2.07',
   m_repay_other: '0', m_reserve: '0',
   m_invest_amt: '14400000', m_div_rate: '8'
@@ -1511,7 +1634,7 @@ const LOAN_DEFAULTS = {
 // ─── 分組快照系統（每張 card 獨立控制）────────────────────────────────────
 // 每組定義：fields（欄位 id 陣列）、restoreBtn id、calcFn（還原後重算）
 const SNAP_GROUPS = {
-  m_orig:   { fields: ['m_loan','m_years','m_grace','m_rate'],
+  m_orig:   { fields: ['m_loan','m_years','m_grace','m_grace_rate','m_rate'],
                restoreBtn: 'btn_m_orig_restore', calcFn: ()=>calcMortgage() },
   m_addl:   { fields: ['m_value','m_ltv','m_new_rate','m_repay_other','m_reserve'],
                restoreBtn: 'btn_m_addl_restore', calcFn: ()=>calcMortgage() },
@@ -1547,6 +1670,11 @@ function clearGroup(groupKey) {
   takeGroupSnapshot(groupKey, true);
   const group = SNAP_GROUPS[groupKey]; if (!group) return;
   group.fields.forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  // 投資配息：連同額外投資項目一併移除
+  if (groupKey === 'm_invest' && typeof mInvestRows !== 'undefined') {
+    mInvestRows.slice(1).forEach(rid => document.getElementById(`mi_item_${rid}`)?.remove());
+    mInvestRows = mInvestRows.slice(0, 1);
+  }
   group.calcFn();
 }
 
@@ -2051,8 +2179,15 @@ function captureCurrentValues(panelId) {
     const raw = document.getElementById(id)?.value || '';
     return MONEY_IDS.has(id) ? toYuanStr(raw) : raw;
   };
-  if (panelId === 'mortgage')
-    return Object.fromEntries(Object.keys(MORTGAGE_DEFAULTS).map(id => [id, grab(id)]));
+  if (panelId === 'mortgage') {
+    const vals = Object.fromEntries(Object.keys(MORTGAGE_DEFAULTS).map(id => [id, grab(id)]));
+    // 額外投資項目（第 2 筆起），金額以元儲存
+    vals.investRows = mInvestRows.slice(1).map(rid => ({
+      amount: toYuanStr(document.getElementById(`mi_amt_${rid}`)?.value || ''),
+      rate:   document.getElementById(`mi_rate_${rid}`)?.value || '',
+    }));
+    return vals;
+  }
   if (panelId === 'loan')
     return Object.fromEntries(Object.keys(LOAN_DEFAULTS).map(id => [id, grab(id)]));
   return {
@@ -2093,7 +2228,16 @@ function loadPlan(planId) {
   // 儲存值為「元」，載入時換算回目前輸入單位
   const put = (id, val) => { const el = document.getElementById(id); if (el) el.value = MONEY_IDS.has(id) ? fromYuanStr(val) : val; };
   if (plan.panel === 'mortgage') {
-    Object.entries(plan.values).forEach(([id, val]) => put(id, val));
+    Object.entries(plan.values).forEach(([id, val]) => { if (id !== 'investRows') put(id, val); });
+    // 還原額外投資項目
+    mInvestRows.slice(1).forEach(rid => document.getElementById(`mi_item_${rid}`)?.remove());
+    mInvestRows = mInvestRows.slice(0, 1);
+    (plan.values.investRows || []).forEach(r => {
+      addInvestRow();
+      const rid = mInvestRows[mInvestRows.length - 1];
+      document.getElementById(`mi_amt_${rid}`).value = fromYuanStr(r.amount);
+      document.getElementById(`mi_rate_${rid}`).value = r.rate;
+    });
     calcMortgage();
   } else if (plan.panel === 'loan') {
     Object.entries(plan.values).forEach(([id, val]) => put(id, val));
@@ -2273,9 +2417,9 @@ function pdfCfBox(label, value, positive) {
 /* ── 房貸 PDF body ── */
 function buildMortgagePDFBody() {
   const origLoan = v('m_loan'), years = v('m_years'), gracYears = v('m_grace'), origRate = v('m_rate');
+  const graceRatePct = v('m_grace_rate');
   const mktVal = v('m_value'), ltvPct = v('m_ltv'), newRate = v('m_new_rate'), divRatePct = v('m_div_rate');
   const repayOther = v('m_repay_other'), reserve = v('m_reserve');
-  const investAmt  = v('m_invest_amt');
 
   const repayMonths = years * 12 - gracYears * 12;
   const mNewRate = newRate / 100 / 12;
@@ -2283,16 +2427,18 @@ function buildMortgagePDFBody() {
   const totalLoan = origLoan + addlLoan;
   const gracePayment = totalLoan * mNewRate;
   const repayPayment = pmt(totalLoan, mNewRate, repayMonths);
-  const invest = investAmt;
-  const monthlyDiv = invest > 0 ? invest * divRatePct / 100 / 12 : 0;
+  const investInfo = getMortgageInvest();
+  const invest = investInfo.invest;
+  const monthlyDiv = investInfo.monthlyDiv;
   const cf_grace = monthlyDiv - gracePayment;
   const cf_repay = monthlyDiv - repayPayment;
 
   return pdfTable(`📋 ${t('pdf_params')}`,
     pdfRow(t('m_loan_amt'), '$'+fmt(origLoan), t('m_loan_years'), years+t('unit_yr')) +
-    pdfRow(t('m_grace'), gracYears+t('unit_yr'), t('m_rate'), origRate+'%', true) +
-    pdfRow(t('m_value'), '$'+fmt(mktVal), t('m_ltv'), ltvPct+'%') +
-    pdfRow(t('m_new_rate'), newRate+'%', t('m_div_rate'), divRatePct+'%', true)
+    pdfRow(t('m_grace'), gracYears+t('unit_yr'), t('m_grace_rate'), graceRatePct+'%', true) +
+    pdfRow(t('m_rate'), origRate+'%', t('m_value'), '$'+fmt(mktVal)) +
+    pdfRow(t('m_ltv'), ltvPct+'%', t('m_new_rate'), newRate+'%', true) +
+    pdfRow(t('m_div_rate'), divRatePct+'%', '', '')
   ) +
   pdfTable(`📊 ${t('pdf_results')}`,
     pdfRow(t('r_add_loan'), '$'+fmt(addlLoan), t('r_total_loan'), '$'+fmt(totalLoan)) +
@@ -2485,8 +2631,9 @@ const FIELD_TIPS = {
   m_loan:        { zh: '目前向銀行借貸的房貸本金總額', en: 'Total principal of your existing mortgage' },
   m_years:       { zh: '貸款總年限（含寬限期）', en: 'Total loan term including grace period' },
   m_grace:       { zh: '寬限期間只需付利息、不用還本金，月付金額較低', en: 'Grace period: interest-only payments, no principal repayment' },
-  m_rate:        { zh: '目前房貸適用的年利率', en: 'Current annual interest rate on your mortgage' },
-  m_value:       { zh: '房屋目前市場估值，用來計算增額貸款的上限金額', en: "Property's current market value, determines the max additional loan amount" },
+  m_grace_rate:  { zh: '寬限期間適用的年利率', en: 'Annual interest rate during the grace period' },
+  m_rate:        { zh: '寬限期結束後適用的年利率', en: 'Annual interest rate after the grace period ends' },
+  m_value:       { zh: '銀行對房屋的增貸估值，用來計算增額貸款的上限金額', en: "Bank's appraised value for refinancing, determines the max additional loan amount" },
   m_ltv:         { zh: '銀行可貸金額佔市值的上限比例，如 80% 表示市值 3,000 萬最多貸 2,400 萬', en: 'Max loan-to-value ratio (e.g. 80% means max loan = 80% of property value)' },
   m_new_rate:    { zh: '增額整合後新房貸的年利率', en: 'New annual rate on the refinanced combined mortgage' },
   m_repay_other: { zh: '增貸資金中用於清償信貸或其他現有負債的金額', en: 'Amount from additional loan used to repay existing debts' },
@@ -2775,9 +2922,13 @@ function calcMortgageMetrics(vals) {
   const reserve    = +vals.m_reserve     || 0;
   const addlLoan   = Math.max(0, mktVal * ltv - origLoan);
   const totalLoan  = origLoan + addlLoan;
-  // 優先用 m_invest_amt（新版方案），舊版方案回退到計算值
-  const invest     = +(vals.m_invest_amt || '') || Math.max(0, addlLoan - repayOther - reserve);
-  const monthlyDiv = invest > 0 ? invest * divRate / 12 : 0;
+  // 優先用 m_invest_amt（新版方案），舊版方案回退到計算值；加計額外投資項目
+  let invest     = +(vals.m_invest_amt || '') || Math.max(0, addlLoan - repayOther - reserve);
+  let monthlyDiv = invest > 0 ? invest * divRate / 12 : 0;
+  (vals.investRows || []).forEach(r => {
+    const a = +r.amount || 0, rr = (+r.rate || 0) / 100;
+    invest += a; monthlyDiv += a * rr / 12;
+  });
   const mR         = newRate / 12;
   const repayMo    = Math.max(0, (years - gracYears) * 12);
   const gracePay   = totalLoan * mR;
