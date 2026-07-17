@@ -272,6 +272,281 @@
   }
 
   /* 語言切換按鈕 */
+  .btn-lang {<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>房貸 · 信貸 試算工具</title>
+<style>
+  :root {
+    --primary: #1a6eb5; --primary-light: #e8f2fc; --primary-dark: #0d4f8a;
+    --accent: #e67e22; --green: #27ae60; --red: #e74c3c;
+    --bg: #f0f4f8; --card: #fff; --border: #d0dce8;
+    --text: #1e2d3d; --muted: #6b7e92;
+    --shadow: 0 1px 6px rgba(26,110,181,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); font-family: 'Segoe UI','Microsoft JhengHei',sans-serif; color: var(--text); font-size: 14px; }
+
+  /* Header — 緊湊 */
+  .header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: #fff; padding: 10px 20px;
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap; row-gap: 6px;   /* 手機：標題保持橫向，按鈕自動換行 */
+  }
+  .header-icon { font-size: 1.4rem; }
+  .header h1 { font-size: 1.1rem; font-weight: 700; white-space: nowrap; }
+  .header p { font-size: 0.75rem; opacity: 0.75; }
+
+  /* Tabs */
+  .tabs { display: flex; background: var(--primary-dark); padding: 0 20px; }
+  .tab {
+    padding: 8px 20px; cursor: pointer; color: rgba(255,255,255,0.6);
+    font-size: 0.88rem; font-weight: 600; border-bottom: 3px solid transparent;
+    transition: all 0.15s; user-select: none;
+  }
+  .tab:hover { color: #fff; }
+  .tab.active { color: #fff; border-bottom-color: var(--accent); }
+
+  /* Main */
+  .main { max-width: 1280px; margin: 0 auto; padding: 12px 16px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .grid-top { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+  .grid-top-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+
+  /* Cards */
+  .card {
+    background: var(--card); border-radius: 8px;
+    box-shadow: var(--shadow); padding: 12px 14px; border: 1px solid var(--border);
+  }
+
+  /* Card title row */
+  .card-title-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; padding-bottom: 7px;
+    border-bottom: 2px solid var(--primary-light);
+  }
+  .card-title {
+    font-size: 0.88rem; font-weight: 700; color: var(--primary);
+    display: flex; align-items: center; gap: 5px;
+    margin-bottom: 0; padding-bottom: 0; border-bottom: none;
+  }
+
+  /* Horizontal fields — 標籤左、輸入右 */
+  .field {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 6px;
+  }
+  .field label {
+    flex: 0 0 110px; font-size: 0.78rem; font-weight: 600;
+    color: var(--muted); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .field label span.req { color: var(--accent); }
+  .input-wrap { flex: 1; position: relative; }
+  .input-wrap .unit {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 0.78rem; pointer-events: none;
+  }
+  input[type=number] {
+    width: 100%; padding: 5px 30px 5px 8px;
+    border: 1.5px solid var(--border); border-radius: 6px;
+    font-size: 0.88rem; color: var(--text); background: #fafcff;
+    transition: border-color 0.15s; -moz-appearance: textfield;
+  }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input:focus { outline: none; border-color: var(--primary); background: #fff; }
+  .field-note { font-size: 0.72rem; color: var(--muted); margin-left: 116px; margin-top: -3px; margin-bottom: 4px; }
+
+  /* Result items */
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px,1fr)); gap: 8px; margin-bottom: 10px; }
+  .result-item {
+    background: var(--primary-light); border-radius: 7px;
+    padding: 8px 10px; border: 1px solid rgba(26,110,181,0.15);
+  }
+  .result-item .r-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+  .result-item .r-value { font-size: 1rem; font-weight: 700; color: var(--primary-dark); }
+  .result-item.positive .r-value { color: var(--green); }
+  .result-item.negative .r-value { color: var(--red); }
+  .result-item.accent .r-value { color: var(--accent); }
+
+  /* 投資配息多筆項目 */
+  .invest-item { position: relative; }
+  .invest-item + .invest-item { border-top: 1px dashed var(--border); margin-top: 7px; padding-top: 7px; }
+  .invest-tag {
+    display: inline-block; font-size: 0.68rem; font-weight: 800;
+    color: var(--primary); background: var(--primary-light);
+    border-radius: 4px; padding: 1px 7px; margin-bottom: 4px;
+  }
+
+  /* Card 內嵌試算結果 */
+  .card-results { margin-top: 8px; padding-top: 7px; border-top: 2px dashed var(--primary-light); }
+  .cr-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+  .cr-row .cr-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+  .cr-row .cr-value { font-size: 0.86rem; font-weight: 700; color: var(--primary-dark); }
+  .cr-row .cr-value.pos { color: var(--green); }
+  .cr-row .cr-value.accent { color: var(--accent); }
+
+  /* Summary block */
+  .summary-block {
+    background: linear-gradient(135deg,#f0f7ff,#e8f2fc);
+    border-radius: 7px; padding: 10px 12px; margin-bottom: 8px;
+    border: 1px solid rgba(26,110,181,0.2);
+  }
+  .summary-block h4 { font-size: 0.82rem; color: var(--primary-dark); margin-bottom: 6px; font-weight: 700; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(26,110,181,0.1); }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .s-label { font-size: 0.78rem; color: var(--muted); }
+  .summary-row .s-value { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+  .summary-row .s-value.pos { color: var(--green); }
+  .summary-row .s-value.neg { color: var(--red); }
+
+  /* Cashflow box */
+  .cashflow-box { border-radius: 7px; padding: 8px 12px; text-align: center; margin-bottom: 8px; }
+  .cashflow-box.pos { background: #e8f8f0; border: 1px solid #a9dfbf; }
+  .cashflow-box.neg { background: #fdf0ef; border: 1px solid #f1948a; }
+  .cashflow-box .cf-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+  .cashflow-box .cf-value { font-size: 1.25rem; font-weight: 800; }
+  .cashflow-box.pos .cf-value { color: var(--green); }
+  .cashflow-box.neg .cf-value { color: var(--red); }
+
+  /* Collapsible table */
+  .collapse-header {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--primary); color: #fff; padding: 7px 14px;
+    border-radius: 7px; cursor: pointer; margin-bottom: 0;
+    font-size: 0.85rem; font-weight: 700; user-select: none;
+    transition: background 0.15s;
+  }
+  .collapse-header:hover { background: var(--primary-dark); }
+  .collapse-header .toggle-icon { font-size: 0.75rem; opacity: 0.85; }
+  .collapse-body { display: none; margin-top: 4px; }
+  .collapse-body.open { display: block; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; max-height: 300px; overflow-y: auto; border-radius: 7px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  thead th {
+    background: var(--primary); color: #fff; padding: 7px 10px;
+    font-weight: 600; text-align: right; position: sticky; top: 0; z-index: 2;
+  }
+  thead th:first-child { text-align: center; }
+  tbody tr:nth-child(even) { background: #f7fafd; }
+  tbody tr:hover { background: var(--primary-light); }
+  tbody td { padding: 5px 10px; text-align: right; border-bottom: 1px solid #eef2f7; }
+  tbody td:first-child { text-align: center; font-weight: 600; color: var(--primary); }
+  .milestone { background: #fff8e1 !important; }
+
+  /* Strategy phase */
+  .strategy-phase { border-radius: 7px; padding: 8px 10px; margin-bottom: 7px; border-left: 3px solid var(--primary); }
+  .strategy-phase.phase-1 { background: #e8f2fc; border-left-color: var(--primary); }
+  .strategy-phase.phase-2 { background: #e8f8f0; border-left-color: var(--green); }
+  .strategy-phase.phase-3 { background: #fef9e7; border-left-color: var(--accent); }
+  .phase-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 5px; color: var(--text); }
+  .phase-row { display: flex; justify-content: space-between; font-size: 0.78rem; padding: 2px 0; color: var(--muted); }
+  .phase-row strong { color: var(--text); font-weight: 700; }
+
+  /* Scenario */
+  .scenario-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .scenario-card { border-radius: 7px; padding: 8px 10px; text-align: center; border: 1px solid; }
+  .scenario-card.base { background: #f0f7ff; border-color: #90c3f0; }
+  .scenario-card.good { background: #e8f8f0; border-color: #82d9aa; }
+  .scenario-card.bad  { background: #fdf0ef; border-color: #f1948a; }
+  .scenario-card .sc-title { font-size: 0.72rem; font-weight: 700; margin-bottom: 4px; color: var(--muted); }
+  .scenario-card .sc-value { font-size: 1rem; font-weight: 800; }
+  .scenario-card.base .sc-value { color: var(--primary); }
+  .scenario-card.good .sc-value { color: var(--green); }
+  .scenario-card.bad  .sc-value { color: var(--red); }
+  .scenario-card .sc-sub { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+  /* Section title */
+  .section-title {
+    font-size: 0.85rem; font-weight: 800; color: var(--primary-dark);
+    margin: 10px 0 6px; padding-bottom: 5px;
+    border-bottom: 2px solid var(--primary-light);
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  /* Buttons */
+  .btn-clear {
+    background: #fff; color: var(--red); border: 1.5px solid var(--red);
+    padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-clear:hover { background: var(--red); color: #fff; }
+  .action-btns { display: flex; gap: 6px; align-items: center; }
+  .btn-clear-sm {
+    background: #fff; color: var(--red); border: 1.5px solid var(--red);
+    padding: 3px 10px; border-radius: 6px; font-size: 0.73rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-clear-sm:hover { background: var(--red); color: #fff; }
+  .btn-restore-sm {
+    background: #fff; color: var(--green); border: 1.5px solid var(--green);
+    padding: 3px 10px; border-radius: 6px; font-size: 0.73rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-restore-sm:hover { background: var(--green); color: #fff; }
+  .btn-restore-sm:disabled { opacity: 0.4; cursor: default; }
+  .btn-restore-sm:disabled:hover { background: #fff; color: var(--green); }
+  .btn-collapse {
+    background: #fff; color: var(--primary); border: 1.5px solid var(--primary);
+    padding: 3px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-collapse:hover { background: var(--primary-light); }
+
+  .badge {
+    display: inline-block; padding: 1px 7px; border-radius: 20px;
+    font-size: 0.68rem; font-weight: 700; margin-left: 4px;
+  }
+  .badge-grace { background: #fff3cd; color: #856404; }
+  .badge-repay { background: #d1e7dd; color: #0a3622; }
+
+  @media (max-width: 900px) {
+    .grid-top, .grid-3 { grid-template-columns: 1fr 1fr; }
+    .grid-top-2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .grid-top, .grid-3, .grid-2, .grid-top-2, .scenario-grid { grid-template-columns: 1fr; }
+    .field label { flex: 0 0 90px; font-size: 0.74rem; }
+    /* Header: hide subtitle, compress padding */
+    .header { padding: 8px 10px; gap: 6px; }
+    .header p { display: none; }
+    .header-icon { font-size: 1.05rem; }
+    .header h1 { font-size: 0.92rem; }
+    .btn-header-icon { padding: 3px 7px; font-size: 0.82rem; }
+    .btn-pdf { padding: 4px 8px; font-size: 0.76rem; }
+    .btn-lang { padding: 4px 8px; font-size: 0.76rem; letter-spacing: 0; }
+    /* Tabs: horizontal scroll on small screens */
+    .tabs { padding: 0 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
+    .tab { padding: 8px 10px; font-size: 0.8rem; white-space: nowrap; flex-shrink: 0; }
+    /* Main content */
+    .main { padding: 8px; }
+    .result-grid { grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); }
+    .cashflow-box .cf-value { font-size: 1.05rem; }
+    /* Export dropdown opens to the left on mobile to stay in viewport */
+    .export-dropdown { right: auto; left: 0; }
+    /* Modals */
+    .modal-box { margin: 8px; border-radius: 10px; }
+    /* Sensitivity table: slightly smaller on mobile */
+    #m_sensitivity, #l_sensitivity { font-size: 0.7rem; }
+  }
+  @media (max-width: 400px) {
+    .header h1 { font-size: 0.82rem; }
+    .btn-header-icon { padding: 3px 5px; }
+    .field label { flex: 0 0 76px; font-size: 0.7rem; }
+    .field-note { margin-left: 82px; }
+  }
+
+  /* 語言切換按鈕 */
   .btn-lang {
     margin-left: auto; background: rgba(255,255,255,0.18); color: #fff;
     border: 1.5px solid rgba(255,255,255,0.55); border-radius: 6px;
@@ -512,6 +787,52 @@
   }
   .cmp-select:focus { outline: none; border-color: var(--primary); }
 
+  /* 浮水印 */
+  #watermark-layer {
+    position: fixed; inset: 0; pointer-events: none;
+    z-index: 900; overflow: hidden; display: none;
+  }
+  #watermark-layer.on { display: block; }
+  #watermark-layer .wm {
+    position: absolute; white-space: nowrap;
+    font-size: 1.05rem; font-weight: 800; letter-spacing: 2px;
+    color: rgba(30,45,61,0.09); transform: rotate(-28deg);
+  }
+  .btn-header-icon.wm-active { background: rgba(255,255,255,0.5); }
+
+  /* 現金流總結（瀑布圖 + 大字卡） */
+  .cfs-wrap { display: flex; gap: 14px; align-items: stretch; flex-wrap: wrap; }
+  .cfs-left { flex: 1.5 1 280px; min-width: 240px; }
+  .cfs-tabs { display: flex; gap: 5px; margin-bottom: 8px; }
+  .cfs-tab {
+    font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    border: 1.5px solid var(--border); background: #fff; color: var(--muted); cursor: pointer;
+  }
+  .cfs-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .cfs-bars { display: flex; gap: 12px; align-items: flex-end; height: 130px; padding: 0 4px; }
+  .cfs-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+  .cfs-bar { width: 100%; border-radius: 5px 5px 0 0; }
+  .cfs-bar.g1 { background: #82d9aa; border: 1px solid #27ae60; }
+  .cfs-bar.rd { background: #f1948a; border: 1px solid #e74c3c; border-radius: 5px; }
+  .cfs-bar.g2 { background: #27ae60; border: 1px solid #1e8449; }
+  .cfs-bar.ng { background: #e74c3c; border: 1px solid #c0392b; }
+  .cfs-lbls { display: flex; gap: 12px; padding: 0 4px; margin-top: 4px; }
+  .cfs-lbl { flex: 1; text-align: center; font-size: 0.68rem; color: var(--muted); font-weight: 600; line-height: 1.3; }
+  .cfs-lbl b { display: block; font-size: 0.76rem; color: var(--text); }
+  .cfs-card {
+    flex: 1 1 220px; min-width: 200px; border-radius: 10px; padding: 14px;
+    display: flex; flex-direction: column; justify-content: center; gap: 6px;
+  }
+  .cfs-card.pos { background: linear-gradient(135deg,#e8f8f0,#d4f1e1); border: 1px solid #a9dfbf; }
+  .cfs-card.neg { background: linear-gradient(135deg,#fdf0ef,#fadbd8); border: 1px solid #f1948a; }
+  .cfs-card-title { font-size: 0.85rem; font-weight: 800; color: var(--muted); }
+  .cfs-card-value { font-size: 1.7rem; font-weight: 900; }
+  .cfs-card.pos .cfs-card-value { color: #1e8449; }
+  .cfs-card.neg .cfs-card-value { color: var(--red); }
+  .cfs-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .cfs-chip { font-size: 0.72rem; font-weight: 700; color: var(--muted); }
+  .cfs-chip b { color: var(--text); }
+
   /* 文字縮放（單一格：A + 上下箭頭） */
   .font-zoom {
     display: inline-flex; align-items: center; gap: 5px;
@@ -556,7 +877,7 @@
 
 <div class="header">
   <div class="header-icon" id="brand-icon-area">🏠</div>
-  <div style="flex:1;">
+  <div style="flex:1;min-width:max-content;">
     <h1 id="header-title" data-i18n="app_title">房貸 · 信貸 試算工具</h1>
     <p data-i18n="app_subtitle">整合配息基金策略，輕鬆規劃您的財務計畫</p>
   </div>
@@ -572,6 +893,8 @@
     <option value="1000">單位：千元</option>
     <option value="10000">單位：萬元</option>
   </select>
+  <button class="btn-header-icon" onclick="scrollToDisclaimer()" title="免責聲明">⚠️</button>
+  <button class="btn-header-icon" id="btn_wm" onclick="toggleWatermark()" title="浮水印 開/關">💧</button>
   <button class="btn-header-icon" onclick="openPlans()" title="儲存/載入方案">💾</button>
   <button class="btn-header-icon" onclick="openSettings()" title="品牌設定">⚙️</button>
   <div class="export-wrap">
@@ -670,14 +993,22 @@
       <div id="m_payment_detail"></div>
     </div>
 
+    <!-- 每月現金流總結（瀑布圖 + 大字卡） -->
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-title-row">
+        <div class="card-title" data-i18n="cfs_title">📊 每月現金流總結</div>
+      </div>
+      <div id="m_cf_summary"></div>
+    </div>
+
     <!-- 圖表 + 敏感度 -->
     <div class="grid-2" style="margin-bottom:10px;">
       <div class="card" style="min-width:0;">
         <div class="card-title-row">
           <div class="card-title" data-i18n="chart_cashflow_title">📈 每年現金流走勢</div>
-          <button class="btn-collapse" id="btn_m_chart" onclick="toggleCard('m_chart_body','btn_m_chart')">▲ 收合</button>
+          <button class="btn-collapse" id="btn_m_chart" onclick="toggleCard('m_chart_body','btn_m_chart')">▼ 展開</button>
         </div>
-        <div id="m_chart_body"><div style="position:relative;height:200px;"><canvas id="m_cashflow_chart"></canvas></div></div>
+        <div id="m_chart_body" style="display:none;"><div style="position:relative;height:200px;"><canvas id="m_cashflow_chart"></canvas></div></div>
       </div>
       <div class="card" style="min-width:0;">
         <div class="card-title-row">
@@ -766,9 +1097,9 @@
       <div class="card" style="min-width:0;">
         <div class="card-title-row">
           <div class="card-title" data-i18n="chart_cashflow_title">📈 每年現金流走勢</div>
-          <button class="btn-collapse" id="btn_l_chart" onclick="toggleCard('l_chart_body','btn_l_chart')">▲ 收合</button>
+          <button class="btn-collapse" id="btn_l_chart" onclick="toggleCard('l_chart_body','btn_l_chart')">▼ 展開</button>
         </div>
-        <div id="l_chart_body"><div style="position:relative;height:200px;"><canvas id="l_cashflow_chart"></canvas></div></div>
+        <div id="l_chart_body" style="display:none;"><div style="position:relative;height:200px;"><canvas id="l_cashflow_chart"></canvas></div></div>
       </div>
       <div class="card" style="min-width:0;">
         <div class="card-title-row">
@@ -878,6 +1209,9 @@
   </div>
 
 </div><!-- /main -->
+
+<!-- 浮水印層（可開關） -->
+<div id="watermark-layer"></div>
 
 <!-- ⚙️ 品牌設定 Modal -->
 <div id="modal-settings" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeSettings()">
@@ -1000,6 +1334,9 @@ const i18n = {
     mode_interest:'還利', mode_amort:'均攤',
     orig_grace_pay:'原貸寬限期月付（利息）', orig_repay_pay:'原貸還本期月付（本利）',
     sum_invest:'合計投入金額', sum_monthly_div:'合計每月配息',
+    cfs_title:'📊 每月現金流總結',
+    cfs_div:'每月配息收益', cfs_pay:'扣除月付金', cfs_net:'每月淨現金流',
+    wm_text:'本數據僅供參考',
     r_add_loan:'可增貸金額', r_total_loan:'總貸款金額', r_invest_amt:'投入基金金額',
     r_monthly_div:'每月基金配息', r_grace_pay:'寬限期月付（利息）', r_repay_pay:'還本期月付（本利）',
     r_monthly_pay:'月付金（還本期）', r_net_monthly:'配息後淨支出',
@@ -1068,6 +1405,9 @@ const i18n = {
     mode_interest:'Int.', mode_amort:'P+I',
     orig_grace_pay:'Orig. Grace Pay (Int.)', orig_repay_pay:'Orig. Repayment (P+I)',
     sum_invest:'Total Invested', sum_monthly_div:'Total Monthly Div',
+    cfs_title:'📊 Monthly Cash Flow Summary',
+    cfs_div:'Monthly Dividend', cfs_pay:'Less Payment', cfs_net:'Net Monthly Cash Flow',
+    wm_text:'For Reference Only',
     r_add_loan:'Additional Loan', r_total_loan:'Total Loan', r_invest_amt:'Fund Investment',
     r_monthly_div:'Monthly Dividend', r_grace_pay:'Grace Payment (Int.)', r_repay_pay:'Repayment (P+I)',
     r_monthly_pay:'Monthly Payment', r_net_monthly:'Net Monthly Cost',
@@ -1137,6 +1477,8 @@ function setLang(l) {
   // 更新金額單位標籤與圖表收合按鈕文字
   updateUnitLabels();
   refreshCardToggleBtns();
+  // 浮水印文字跟隨語言
+  if (watermarkOn) buildWatermark();
   // 語言切換後保持品牌名稱
   if (typeof brandSettings !== 'undefined') applyBrand();
   // 更新 tooltip 文字
@@ -1220,6 +1562,79 @@ function zoomText(dir) {
   document.body.style.zoom = zoomLevel;
 }
 
+// ─── 免責聲明快速捲動 ─────────────────────────────────────────────────────
+function scrollToDisclaimer() {
+  const panel = document.querySelector('.panel.active');
+  const d = panel && panel.querySelector('.disclaimer-bar');
+  if (d) d.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ─── 浮水印（可開關，狀態記憶） ──────────────────────────────────────────
+let watermarkOn = false;
+function buildWatermark() {
+  const layer = document.getElementById('watermark-layer');
+  if (!layer) return;
+  const brand = (typeof brandSettings !== 'undefined' && brandSettings.name) ? brandSettings.name + '｜' : '';
+  const txt = brand + t('wm_text');
+  let html = '';
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 4; c++)
+      html += `<span class="wm" style="top:${r * 12 + (c % 2) * 5}%;left:${c * 27 - 4}%;">${txt}</span>`;
+  layer.innerHTML = html;
+}
+function toggleWatermark(force) {
+  watermarkOn = (typeof force === 'boolean') ? force : !watermarkOn;
+  buildWatermark();
+  document.getElementById('watermark-layer').classList.toggle('on', watermarkOn);
+  const btn = document.getElementById('btn_wm');
+  if (btn) btn.classList.toggle('wm-active', watermarkOn);
+  try { localStorage.setItem('rc_watermark', watermarkOn ? '1' : '0'); } catch(e) {}
+}
+
+// ─── 每月現金流總結（瀑布圖 + 大字卡，寬限期/還本期切換） ────────────────
+let mCfPhase = 'grace';
+let mCfData = null;
+function setCfPhase(p) { mCfPhase = p; renderCfSummaryM(); }
+function renderCfSummaryM() {
+  const el = document.getElementById('m_cf_summary');
+  if (!el || !mCfData) return;
+  const div = mCfData.monthlyDiv;
+  const pay = mCfPhase === 'grace' ? mCfData.gracePay : mCfData.repayPay;
+  const net = div - pay;
+  const H = 118, mx = Math.max(div, pay, 1);
+  const h = v => Math.max(3, Math.round(Math.abs(v) / mx * H));
+  const pos = net >= 0;
+  // 中間紅色長條懸掛在配息頂端（瀑布式）：底部墊高 = 淨現金流高度
+  const midMargin = pos ? h(net) : 0;
+  el.innerHTML = `
+    <div class="cfs-wrap">
+      <div class="cfs-left">
+        <div class="cfs-tabs">
+          <button class="cfs-tab ${mCfPhase==='grace'?'active':''}" onclick="setCfPhase('grace')">${t('badge_grace')}</button>
+          <button class="cfs-tab ${mCfPhase==='repay'?'active':''}" onclick="setCfPhase('repay')">${t('badge_repay')}</button>
+        </div>
+        <div class="cfs-bars">
+          <div class="cfs-col"><div class="cfs-bar g1" style="height:${h(div)}px;"></div></div>
+          <div class="cfs-col"><div class="cfs-bar rd" style="height:${h(pay)}px;margin-bottom:${midMargin}px;"></div></div>
+          <div class="cfs-col"><div class="cfs-bar ${pos?'g2':'ng'}" style="height:${h(net)}px;"></div></div>
+        </div>
+        <div class="cfs-lbls">
+          <div class="cfs-lbl">${t('cfs_div')}<b>$${fmt(div)}</b></div>
+          <div class="cfs-lbl">${t('cfs_pay')}<b>− $${fmt(pay)}</b></div>
+          <div class="cfs-lbl">${t('cfs_net')}<b style="color:${pos?'#1e8449':'#e74c3c'};">${pos?'':'−'} $${fmt(Math.abs(net))}</b></div>
+        </div>
+      </div>
+      <div class="cfs-card ${pos?'pos':'neg'}">
+        <div class="cfs-card-title">${t('cfs_net')}（${mCfPhase==='grace'?t('badge_grace'):t('badge_repay')}）</div>
+        <div class="cfs-card-value">${pos?'':'−'} $${fmt(Math.abs(net))}${t('mo_sfx')}</div>
+        <div class="cfs-chips">
+          <span class="cfs-chip">💰 ${t('chart_dividend')}：<b>$${fmt(div)}</b></span>
+          <span class="cfs-chip">💸 ${t('chart_payment')}：<b>$${fmt(pay)}</b></span>
+        </div>
+      </div>
+    </div>`;
+}
+
 // ─── 投資配息計畫：多筆投資項目 ──────────────────────────────────────────
 // 第 1 筆固定使用 m_invest_amt / m_div_rate（相容快照、方案儲存、自動帶入）
 let mInvestRows = [1];
@@ -1262,7 +1677,7 @@ function getMortgageInvest() {
 }
 
 // ─── 圖表 / 敏感度分析卡片收合 ────────────────────────────────────────────
-const collapsedCards = {};
+const collapsedCards = { m_chart_body: true, l_chart_body: true };  // 走勢圖預設收合
 function toggleCard(bodyId, btnId) {
   const body = document.getElementById(bodyId);
   if (!body) return;
@@ -1271,9 +1686,10 @@ function toggleCard(bodyId, btnId) {
   collapsedCards[bodyId] = !open;
   const btn = document.getElementById(btnId);
   if (btn) btn.textContent = open ? t('m_addl_open') : t('m_addl_close');
+  // 展開時重新繪圖（收合期間建立的圖表尺寸為 0，需重算）
   if (open) setTimeout(() => {
-    if (bodyId === 'm_chart_body' && mChart) mChart.resize();
-    if (bodyId === 'l_chart_body' && lChart) lChart.resize();
+    if (bodyId === 'm_chart_body') calcMortgage();
+    if (bodyId === 'l_chart_body') calcLoan();
   }, 30);
 }
 function refreshCardToggleBtns() {
@@ -1429,6 +1845,10 @@ function calcMortgage() {
   const divD = yLabels.map(() => Math.round(monthlyDiv));
   mChart = renderCashflowChart('m_cashflow_chart', mChart, yLabels, payD, divD);
   renderMortgageSens(totalLoan, repayMonths, monthlyDiv, v('m_new_rate'));
+
+  // 每月現金流總結（瀑布圖 + 大字卡）
+  mCfData = { monthlyDiv, gracePay: gracePayment, repayPay: repayPayment };
+  renderCfSummaryM();
 }
 
 // ─── 信貸方案 ─────────────────────────────────────────────────────────────
@@ -1977,26 +2397,26 @@ function renderCashflowChart(canvasId, existing, labels, payData, divData) {
   if (!ctx) return existing;
   if (existing) existing.destroy();
 
+  // 堆疊長條：紅色 = 月付金、綠色 = 淨現金流（兩段相加 = 月配息，綠虛線為配息參考線）
   const netData = payData.map((p, i) => divData[i] - p);
   return new Chart(ctx, {
     data: {
       labels,
       datasets: [
         {
-          type: 'bar', label: t('chart_netcf'), data: netData, order: 2, yAxisID: 'y',
-          backgroundColor: netData.map(v => v >= 0 ? 'rgba(39,174,96,0.5)' : 'rgba(231,76,60,0.5)'),
-          borderColor:      netData.map(v => v >= 0 ? '#27ae60' : '#e74c3c'),
+          type: 'bar', label: t('chart_payment'), data: payData, order: 2, yAxisID: 'y', stack: 'cf',
+          backgroundColor: 'rgba(231,76,60,0.55)', borderColor: '#e74c3c', borderWidth: 1,
+        },
+        {
+          type: 'bar', label: t('chart_netcf'), data: netData, order: 2, yAxisID: 'y', stack: 'cf',
+          backgroundColor: netData.map(v => v >= 0 ? 'rgba(39,174,96,0.6)' : 'rgba(192,57,43,0.75)'),
+          borderColor:      netData.map(v => v >= 0 ? '#27ae60' : '#c0392b'),
           borderWidth: 1,
         },
         {
-          type: 'line', label: t('chart_payment'), data: payData, order: 1, yAxisID: 'y',
-          borderColor: '#e74c3c', backgroundColor: 'transparent',
-          borderWidth: 2, pointRadius: 3, tension: 0,
-        },
-        {
           type: 'line', label: t('chart_dividend'), data: divData, order: 1, yAxisID: 'y',
-          borderColor: '#27ae60', backgroundColor: 'transparent',
-          borderWidth: 2, pointRadius: 3, tension: 0,
+          borderColor: '#1e8449', backgroundColor: 'transparent',
+          borderWidth: 2, borderDash: [6, 3], pointRadius: 0, tension: 0,
         }
       ]
     },
@@ -2004,14 +2424,23 @@ function renderCashflowChart(canvasId, existing, labels, payData, divData) {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } },
-        tooltip: { callbacks: { label: c => `${c.dataset.label}: $${fmt(Math.round(c.raw))}` } }
+        tooltip: {
+          callbacks: {
+            label: c => `${c.dataset.label}: $${fmt(Math.round(c.raw))}`,
+            footer: items => {
+              const i = items[0]?.dataIndex ?? 0;
+              return `${t('chart_dividend')} $${fmt(divData[i])} − ${t('chart_payment')} $${fmt(payData[i])} = ${t('chart_netcf')} $${fmt(netData[i])}`;
+            }
+          }
+        }
       },
       scales: {
         y: {
+          stacked: true,
           ticks: { font: { size: 9 }, callback: v => Math.abs(v)>=10000 ? '$'+Math.round(v/1000)+'k' : '$'+fmt(v) },
           grid: { color: 'rgba(0,0,0,0.06)' }
         },
-        x: { ticks: { font: { size: 9 } }, grid: { display: false } }
+        x: { stacked: true, ticks: { font: { size: 9 } }, grid: { display: false } }
       }
     }
   });
@@ -3099,6 +3528,7 @@ loadPlansFromStorage();
 initTooltips();
 initSnapshotListeners();  // 監聽 focus，首次編輯前自動快照
 updateDisclaimers();      // ensure default text renders even before brand loads
+try { if (localStorage.getItem('rc_watermark') === '1') toggleWatermark(true); } catch(e) {}
 </script>
 </body>
 </html>
