@@ -762,7 +762,8 @@
         <div class="field"><label data-i18n="asset_amt">資產借出金額</label><div class="input-wrap"><input type="number" class="money" id="m_asset_amt" value="0" oninput="calcAsset()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
         <div class="field"><label data-i18n="asset_rate">資產借出利率</label><div class="input-wrap"><input type="number" id="m_asset_rate" value="2.5" step="0.01" oninput="calcAsset()"><span class="unit">%</span></div></div>
         <div class="card-results" id="m_asset_results"></div>
-        <div style="position:relative;height:170px;margin-top:8px;"><canvas id="m_asset_chart"></canvas></div>
+        <div id="m_asset_chart_wrap" style="position:relative;height:170px;margin-top:8px;"><canvas id="m_asset_chart"></canvas></div>
+        <div id="m_asset_chart_hint" style="display:none;margin-top:8px;padding:18px;text-align:center;color:var(--muted);font-size:0.78rem;background:#f7fafd;border:1px dashed var(--border);border-radius:7px;" data-i18n="asset_hint">輸入資產借出金額後即顯示圖表</div>
       </div>
 
       <!-- 預計新購屋資料 -->
@@ -1086,6 +1087,7 @@ const i18n = {
     nh_loan:'房貸金額', nh_down:'自備款', nh_grace_pay:'寬限期月付', nh_repay_pay:'還本期月付',
     r_repay_tranche_pay:'清償貸款月付', r_addl_tranche_pay:'增貸貸款月付',
     r_add_loan_tip:'總貸款金額扣除清償原有貸款',
+    asset_hint:'輸入資產借出金額後即顯示圖表',
     m_repay_other:'清償原有貸款', m_reserve:'預留預備金',
     m_plan_title:'💰 投資配息計畫', m_invest_amt_lbl:'投入配息金額', m_yield_rate:'預估年化報酬',
     m_div_rate:'年化配息率',
@@ -1165,6 +1167,7 @@ const i18n = {
     nh_loan:'Loan Amount', nh_down:'Down Payment', nh_grace_pay:'Grace Payment', nh_repay_pay:'Repayment (P+I)',
     r_repay_tranche_pay:'Repay-Loan Monthly', r_addl_tranche_pay:'Additional-Loan Monthly',
     r_add_loan_tip:'Total loan minus repayment of existing mortgage',
+    asset_hint:'Enter an asset loan amount to show the chart',
     m_repay_other:'Repay Existing Loan', m_reserve:'Cash Reserve',
     m_plan_title:'💰 Investment Plan', m_invest_amt_lbl:'Invested Amount', m_yield_rate:'Est. Annual Return',
     m_div_rate:'Dividend Rate',
@@ -1330,7 +1333,7 @@ function setUnit(nf, recalc = true) {
   });
   unitFactor = nf;
   updateUnitLabels();
-  if (recalc) { calcMortgage(); calcLoan(); calcMulti(); }
+  if (recalc) { calcMortgage(); calcAsset(); calcNewHouse(); calcLoan(); calcMulti(); }
 }
 
 // 儲存方案時金額一律轉為「元」；載入時再換算回目前單位
@@ -1474,16 +1477,23 @@ function calcAsset() {
     crRow(t('asset_month_int'), '$' + fmt(mInt) + t('mo_sfx'), 'accent') +
     crRow(t('asset_year_int'), '$' + fmt(yInt) + t('yr_sfx'), 'accent');
 
+  // 金額為 0 時顯示提示、隱藏圖表
+  const wrap = document.getElementById('m_asset_chart_wrap');
+  const hint = document.getElementById('m_asset_chart_hint');
+  if (wrap && hint) {
+    wrap.style.display = amt > 0 ? '' : 'none';
+    hint.style.display = amt > 0 ? 'none' : '';
+  }
+
   // 圖表：借出本金 vs 累積利息（前 10 年）
-  if (typeof Chart !== 'undefined') {
+  if (amt > 0 && typeof Chart !== 'undefined') {
     const ctx = document.getElementById('m_asset_chart');
     if (ctx) {
       const yrs = 10;
       const labels = Array.from({length: yrs}, (_, i) => lang === 'zh' ? `第${i+1}年` : `Y${i+1}`);
       const cumInt = labels.map((_, i) => Math.round(yInt * (i + 1)));
       const principal = labels.map(() => Math.round(amt));
-      if (assetChart) assetChart.destroy();
-      assetChart = new Chart(ctx, {
+      assetChart = safeChart(ctx, assetChart, {
         type: 'bar',
         data: { labels, datasets: [
           { label: t('asset_amt'), data: principal, backgroundColor: 'rgba(26,110,181,0.25)', borderColor: '#1a6eb5', borderWidth: 1 },
@@ -1530,8 +1540,7 @@ function calcNewHouse() {
   if (typeof Chart !== 'undefined') {
     const ctx = document.getElementById('m_nh_chart');
     if (ctx) {
-      if (nhChart) nhChart.destroy();
-      nhChart = new Chart(ctx, {
+      nhChart = safeChart(ctx, nhChart, {
         type: 'bar',
         data: { labels: [t('nh_grace_pay'), t('nh_repay_pay')], datasets: [
           { label: t('chart_payment'), data: [Math.round(gracePay), Math.round(repayPay)],
@@ -1592,7 +1601,11 @@ function switchTab(tab) {
   event.target.classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
   setTimeout(() => {
-    if (tab === 'mortgage' && mChart) mChart.resize();
+    if (tab === 'mortgage') {
+      if (mChart) mChart.resize();
+      // 資產借出 / 新購屋圖表：切回分頁時重算，避免在隱藏狀態下建立導致空白
+      calcAsset(); calcNewHouse();
+    }
     if (tab === 'loan' && lChart) lChart.resize();
   }, 50);
 }
@@ -2278,15 +2291,28 @@ function clearDivRows() {
 // ─── 圖表 & 敏感度分析 ────────────────────────────────────────────────────
 let mChart = null, lChart = null;
 
+// 安全建立圖表：先銷毀舊實例（含被鎖住的 canvas），失敗不中斷其他計算
+function safeChart(canvasEl, existing, config) {
+  if (typeof Chart === 'undefined' || !canvasEl) return existing || null;
+  try {
+    if (existing) { try { existing.destroy(); } catch(e) {} }
+    const prev = Chart.getChart ? Chart.getChart(canvasEl) : null;
+    if (prev) { try { prev.destroy(); } catch(e) {} }
+    return new Chart(canvasEl, config);
+  } catch(e) {
+    console.warn('chart render failed:', canvasEl.id, e);
+    return null;
+  }
+}
+
 function renderCashflowChart(canvasId, existing, labels, payData, divData) {
   if (typeof Chart === 'undefined') return existing;
   const ctx = document.getElementById(canvasId);
   if (!ctx) return existing;
-  if (existing) existing.destroy();
 
   // 堆疊長條：紅色 = 月付金、綠色 = 淨現金流（兩段相加 = 月配息，綠虛線為配息參考線）
   const netData = payData.map((p, i) => divData[i] - p);
-  return new Chart(ctx, {
+  return safeChart(ctx, existing, {
     data: {
       labels,
       datasets: [
@@ -2741,8 +2767,8 @@ function buildMortgagePDFBody() {
 
   const repayMonths = years * 12 - gracYears * 12;
   const mNewRate = newRate / 100 / 12;
-  const addlLoan = Math.max(0, mktVal * ltvPct / 100 - origLoan);
-  const totalLoan = origLoan + addlLoan;
+  const totalLoan = mktVal * ltvPct / 100;
+  const addlLoan = Math.max(0, totalLoan - repayOther);
   const gracePayment = totalLoan * mNewRate;
   const repayPayment = pmt(totalLoan, mNewRate, repayMonths);
   const investInfo = getMortgageInvest();
@@ -3248,10 +3274,11 @@ function calcMortgageMetrics(vals) {
   const divRate    = (+vals.m_div_rate   || 0) / 100;
   const repayOther = +vals.m_repay_other || 0;
   const reserve    = +vals.m_reserve     || 0;
-  const addlLoan   = Math.max(0, mktVal * ltv - origLoan);
-  const totalLoan  = origLoan + addlLoan;
+  // 總貸款 = 估價 × 成數；可增貸 = 總貸款 − 清償原有貸款
+  const totalLoan  = mktVal * ltv;
+  const addlLoan   = Math.max(0, totalLoan - repayOther);
   // 優先用 m_invest_amt（新版方案），舊版方案回退到計算值；加計額外投資項目
-  let invest     = +(vals.m_invest_amt || '') || Math.max(0, addlLoan - repayOther - reserve);
+  let invest     = +(vals.m_invest_amt || '') || Math.max(0, addlLoan - reserve);
   let monthlyDiv = invest > 0 ? invest * divRate / 12 : 0;
   (vals.investRows || []).forEach(r => {
     const a = +r.amount || 0, rr = (+r.rate || 0) / 100;
