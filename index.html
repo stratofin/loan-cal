@@ -660,6 +660,7 @@
         <div class="field"><label data-i18n="m_grace">寬限期</label><div class="input-wrap"><input type="number" id="m_grace" value="3" oninput="calcMortgage()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
         <div class="field"><label data-i18n="m_grace_rate">寬限期利率</label><div class="input-wrap"><input type="number" id="m_grace_rate" value="1.9" step="0.01" oninput="calcMortgage()"><span class="unit">%</span></div></div>
         <div class="field"><label data-i18n="m_rate">寬限後年利率</label><div class="input-wrap"><input type="number" id="m_rate" value="1.9" step="0.01" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="m_manual_pay">目前本利攤月付款</label><div class="input-wrap"><input type="number" class="money" id="m_manual_pay" placeholder="選填，留空自動試算" oninput="calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
         <div class="card-results" id="m_orig_results"></div>
       </div>
 
@@ -674,10 +675,12 @@
           </div>
         </div>
         <div id="m_addl_body">
-          <div class="field"><label data-i18n="m_value">銀行增貸估值</label><div class="input-wrap"><input type="number" class="money" id="m_value" value="38000000" oninput="autoFillInvest();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+          <div class="field"><label data-i18n="m_value">銀行房屋估價</label><div class="input-wrap"><input type="number" class="money" id="m_value" value="38000000" oninput="autoFillInvest();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
           <div class="field"><label data-i18n="m_ltv">可貸成數</label><div class="input-wrap"><input type="number" id="m_ltv" value="80" step="1" oninput="autoFillInvest();calcMortgage()"><span class="unit">%</span></div></div>
           <div class="field"><label data-i18n="m_new_rate">新貸款利率</label><div class="input-wrap"><input type="number" id="m_new_rate" value="2.07" step="0.01" oninput="calcMortgage()"><span class="unit">%</span></div></div>
           <div class="field"><label data-i18n="m_repay_other">清償原有貸款</label><div class="input-wrap"><input type="number" class="money" id="m_repay_other" value="0" oninput="autoFillInvest();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+          <div class="field"><label data-i18n="m_repay_rate">清償貸款利率</label><div class="input-wrap"><input type="number" id="m_repay_rate" value="1.9" step="0.01" oninput="calcMortgage()"><span class="unit">%</span></div></div>
+          <div class="field"><label data-i18n="m_addl_rate">增貸利率</label><div class="input-wrap"><input type="number" id="m_addl_rate" value="2.07" step="0.01" oninput="calcMortgage()"><span class="unit">%</span></div></div>
           <div class="field"><label data-i18n="m_reserve">預留預備金</label><div class="input-wrap"><input type="number" class="money" id="m_reserve" value="0" oninput="autoFillInvest();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
         </div>
         <div class="card-results" id="m_addl_results"></div>
@@ -742,6 +745,43 @@
           <button class="btn-collapse" id="btn_m_sens" onclick="toggleCard('m_sens_body','btn_m_sens')">▲ 收合</button>
         </div>
         <div id="m_sens_body"><div id="m_sensitivity" style="overflow-x:auto;"></div></div>
+      </div>
+    </div>
+
+    <!-- 資產借出再次活化 + 預計新購屋 -->
+    <div class="grid-2" style="margin-bottom:10px;">
+      <!-- 資產借出再次活化資料 -->
+      <div class="card" style="min-width:0;">
+        <div class="card-title-row">
+          <div class="card-title" data-i18n="asset_title">🔄 資產借出再次活化資料</div>
+          <div class="action-btns">
+            <button class="btn-clear-sm" onclick="clearGroup('m_asset')" data-i18n="btn_clear_fields">🗑 清除</button>
+            <button class="btn-restore-sm" id="btn_m_asset_restore" onclick="restoreGroup('m_asset')" data-i18n="btn_restore_snap" disabled>↩ 還原</button>
+          </div>
+        </div>
+        <div class="field"><label data-i18n="asset_amt">資產借出金額</label><div class="input-wrap"><input type="number" class="money" id="m_asset_amt" value="0" oninput="calcAsset()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+        <div class="field"><label data-i18n="asset_rate">資產借出利率</label><div class="input-wrap"><input type="number" id="m_asset_rate" value="2.5" step="0.01" oninput="calcAsset()"><span class="unit">%</span></div></div>
+        <div class="card-results" id="m_asset_results"></div>
+        <div style="position:relative;height:170px;margin-top:8px;"><canvas id="m_asset_chart"></canvas></div>
+      </div>
+
+      <!-- 預計新購屋資料 -->
+      <div class="card" style="min-width:0;">
+        <div class="card-title-row">
+          <div class="card-title" data-i18n="nh_title">🏠 預計新購屋資料</div>
+          <div class="action-btns">
+            <button class="btn-clear-sm" onclick="clearGroup('m_nh')" data-i18n="btn_clear_fields">🗑 清除</button>
+            <button class="btn-restore-sm" id="btn_m_nh_restore" onclick="restoreGroup('m_nh')" data-i18n="btn_restore_snap" disabled>↩ 還原</button>
+          </div>
+        </div>
+        <div class="field"><label data-i18n="nh_price">預計新購屋總價</label><div class="input-wrap"><input type="number" class="money" id="n_price" value="20000000" oninput="calcNewHouse()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+        <div class="field"><label data-i18n="nh_ltv">預計購屋貸款成數</label><div class="input-wrap"><input type="number" id="n_ltv" value="80" step="1" oninput="calcNewHouse()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="nh_grace">寬限期</label><div class="input-wrap"><input type="number" id="n_grace" value="3" oninput="calcNewHouse()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
+        <div class="field"><label data-i18n="nh_grace_rate">寬限期利率</label><div class="input-wrap"><input type="number" id="n_grace_rate" value="2.0" step="0.01" oninput="calcNewHouse()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="nh_rate">寬限期後年利率</label><div class="input-wrap"><input type="number" id="n_rate" value="2.2" step="0.01" oninput="calcNewHouse()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="nh_years">貸款年限</label><div class="input-wrap"><input type="number" id="n_years" value="30" oninput="calcNewHouse()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
+        <div class="card-results" id="m_nh_results"></div>
+        <div style="position:relative;height:170px;margin-top:8px;"><canvas id="m_nh_chart"></canvas></div>
       </div>
     </div>
 
@@ -1036,8 +1076,16 @@ const i18n = {
     m_title:'🏦 原有房貸資料', btn_clear_example:'清除範例', btn_restore_example:'恢復範例',
     btn_clear_fields:'🗑 清除', btn_restore_snap:'↩ 還原', btn_restore_snap_ready:'↩ 還原 · 剛才',
     m_loan_amt:'原本貸款金額', m_loan_years:'貸款年限', m_grace:'寬限期', m_grace_rate:'寬限期利率', m_rate:'寬限後年利率',
+    m_manual_pay:'目前本利攤月付款',
     m_addl_title:'📋 增額貸款資料', m_addl_open:'▲ 收合', m_addl_close:'▼ 展開',
-    m_value:'銀行增貸估值', m_ltv:'可貸成數', m_new_rate:'新貸款利率',
+    m_value:'銀行房屋估價', m_ltv:'可貸成數', m_new_rate:'新貸款利率', m_repay_rate:'清償貸款利率', m_addl_rate:'增貸利率',
+    asset_title:'🔄 資產借出再次活化資料', asset_amt:'資產借出金額', asset_rate:'資產借出利率',
+    asset_month_int:'每月利息', asset_year_int:'每年利息', asset_cum_int:'累積利息',
+    nh_title:'🏠 預計新購屋資料', nh_price:'預計新購屋總價', nh_ltv:'預計購屋貸款成數',
+    nh_grace:'寬限期', nh_grace_rate:'寬限期利率', nh_rate:'寬限期後年利率', nh_years:'貸款年限',
+    nh_loan:'房貸金額', nh_down:'自備款', nh_grace_pay:'寬限期月付', nh_repay_pay:'還本期月付',
+    r_repay_tranche_pay:'清償貸款月付', r_addl_tranche_pay:'增貸貸款月付',
+    r_add_loan_tip:'總貸款金額扣除清償原有貸款',
     m_repay_other:'清償原有貸款', m_reserve:'預留預備金',
     m_plan_title:'💰 投資配息計畫', m_invest_amt_lbl:'投入配息金額', m_yield_rate:'預估年化報酬',
     m_div_rate:'年化配息率',
@@ -1107,8 +1155,16 @@ const i18n = {
     m_title:'🏦 Original Mortgage', btn_clear_example:'Clear Example', btn_restore_example:'Restore Example',
     btn_clear_fields:'🗑 Clear', btn_restore_snap:'↩ Restore', btn_restore_snap_ready:'↩ Restore · just now',
     m_loan_amt:'Loan Amount', m_loan_years:'Loan Term', m_grace:'Grace Period', m_grace_rate:'Grace Period Rate', m_rate:'Post-Grace Rate',
+    m_manual_pay:'Current Monthly P+I',
     m_addl_title:'📋 Additional Loan', m_addl_open:'▲ Collapse', m_addl_close:'▼ Expand',
-    m_value:'Bank Appraised Value', m_ltv:'LTV Ratio', m_new_rate:'New Loan Rate',
+    m_value:'Bank Appraised Value', m_ltv:'LTV Ratio', m_new_rate:'New Loan Rate', m_repay_rate:'Repay-Loan Rate', m_addl_rate:'Additional-Loan Rate',
+    asset_title:'🔄 Asset Reactivation', asset_amt:'Asset Loan Amount', asset_rate:'Asset Loan Rate',
+    asset_month_int:'Monthly Interest', asset_year_int:'Annual Interest', asset_cum_int:'Cumulative Interest',
+    nh_title:'🏠 New Home Purchase', nh_price:'New Home Price', nh_ltv:'Purchase LTV',
+    nh_grace:'Grace Period', nh_grace_rate:'Grace Rate', nh_rate:'Post-Grace Rate', nh_years:'Loan Term',
+    nh_loan:'Loan Amount', nh_down:'Down Payment', nh_grace_pay:'Grace Payment', nh_repay_pay:'Repayment (P+I)',
+    r_repay_tranche_pay:'Repay-Loan Monthly', r_addl_tranche_pay:'Additional-Loan Monthly',
+    r_add_loan_tip:'Total loan minus repayment of existing mortgage',
     m_repay_other:'Repay Existing Loan', m_reserve:'Cash Reserve',
     m_plan_title:'💰 Investment Plan', m_invest_amt_lbl:'Invested Amount', m_yield_rate:'Est. Annual Return',
     m_div_rate:'Dividend Rate',
@@ -1186,7 +1242,7 @@ function setLang(l) {
     el.title = t(el.getAttribute('data-i18n-title'));
   });
   // 重新算以更新動態內容
-  calcMortgage(); calcLoan(); calcMulti();
+  calcMortgage(); calcAsset(); calcNewHouse(); calcLoan(); calcMulti();
   // 同步各組還原按鈕文字（語言切換後保持狀態）
   Object.entries(SNAP_GROUPS).forEach(([key, group]) => {
     const btn = document.getElementById(group.restoreBtn);
@@ -1230,7 +1286,7 @@ function fmtMoney(n) {
 // ─── 金額輸入單位（元 / 千元 / 萬元）──────────────────────────────────────
 // 內部計算一律以「元」為準；金額輸入欄位（.money）以所選單位顯示
 let unitFactor = 1;
-const MONEY_IDS = new Set(['m_loan','m_value','m_repay_other','m_reserve','m_invest_amt','l_loan','l_fee','l_invest']);
+const MONEY_IDS = new Set(['m_loan','m_manual_pay','m_value','m_repay_other','m_reserve','m_invest_amt','m_asset_amt','n_price','l_loan','l_fee','l_invest']);
 
 function v(id) {
   const raw = parseFloat(document.getElementById(id).value) || 0;
@@ -1402,6 +1458,98 @@ function getMortgageInvest() {
   return { invest, monthlyDiv, items };
 }
 
+// ─── 資產借出再次活化 ─────────────────────────────────────────────────────
+let assetChart = null;
+function calcAsset() {
+  const amt  = v('m_asset_amt');
+  const rate = v('m_asset_rate') / 100;
+  const mInt = amt * rate / 12;   // 每月利息
+  const yInt = amt * rate;        // 每年利息
+
+  const crRow = (label, value, cls='') =>
+    `<div class="cr-row"><span class="cr-label">${label}</span><span class="cr-value ${cls}">${value}</span></div>`;
+  const el = document.getElementById('m_asset_results');
+  if (el) el.innerHTML =
+    crRow(t('asset_amt'), '$' + fmt(amt)) +
+    crRow(t('asset_month_int'), '$' + fmt(mInt) + t('mo_sfx'), 'accent') +
+    crRow(t('asset_year_int'), '$' + fmt(yInt) + t('yr_sfx'), 'accent');
+
+  // 圖表：借出本金 vs 累積利息（前 10 年）
+  if (typeof Chart !== 'undefined') {
+    const ctx = document.getElementById('m_asset_chart');
+    if (ctx) {
+      const yrs = 10;
+      const labels = Array.from({length: yrs}, (_, i) => lang === 'zh' ? `第${i+1}年` : `Y${i+1}`);
+      const cumInt = labels.map((_, i) => Math.round(yInt * (i + 1)));
+      const principal = labels.map(() => Math.round(amt));
+      if (assetChart) assetChart.destroy();
+      assetChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: [
+          { label: t('asset_amt'), data: principal, backgroundColor: 'rgba(26,110,181,0.25)', borderColor: '#1a6eb5', borderWidth: 1 },
+          { label: t('asset_cum_int'), type: 'line', data: cumInt, borderColor: '#e67e22', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 2, tension: 0.1 },
+        ]},
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 6 } },
+            tooltip: { callbacks: { label: c => `${c.dataset.label}: $${fmt(Math.round(c.raw))}` } } },
+          scales: { y: { ticks: { font: { size: 9 }, callback: v => Math.abs(v)>=10000 ? '$'+Math.round(v/1000)+'k' : '$'+fmt(v) } },
+            x: { ticks: { font: { size: 9 } }, grid: { display: false } } }
+        }
+      });
+    }
+  }
+}
+
+// ─── 預計新購屋 ───────────────────────────────────────────────────────────
+let nhChart = null;
+function calcNewHouse() {
+  const price = v('n_price');
+  const ltv   = v('n_ltv') / 100;
+  const gYrs  = v('n_grace');
+  const gRate = v('n_grace_rate') / 100;
+  const rate  = v('n_rate') / 100;
+  const years = v('n_years') || 30;
+
+  const loan     = price * ltv;
+  const downPay  = Math.max(0, price - loan);
+  const repayMo  = Math.max(1, (years - gYrs) * 12);
+  const gracePay = loan * gRate / 12;
+  const repayPay = pmt(loan, rate / 12, repayMo);
+
+  const crRow = (label, value, cls='') =>
+    `<div class="cr-row"><span class="cr-label">${label}</span><span class="cr-value ${cls}">${value}</span></div>`;
+  const el = document.getElementById('m_nh_results');
+  if (el) el.innerHTML =
+    crRow(t('nh_loan'), '$' + fmt(loan)) +
+    crRow(t('nh_down'), '$' + fmt(downPay), 'accent') +
+    crRow(`${t('nh_grace_pay')}（${(gRate*100).toFixed(2)}%）`, '$' + fmt(gracePay)) +
+    crRow(`${t('nh_repay_pay')}（${(rate*100).toFixed(2)}%）`, '$' + fmt(repayPay));
+
+  // 圖表：寬限期 vs 還本期 月付金
+  if (typeof Chart !== 'undefined') {
+    const ctx = document.getElementById('m_nh_chart');
+    if (ctx) {
+      if (nhChart) nhChart.destroy();
+      nhChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: [t('nh_grace_pay'), t('nh_repay_pay')], datasets: [
+          { label: t('chart_payment'), data: [Math.round(gracePay), Math.round(repayPay)],
+            backgroundColor: ['rgba(230,126,34,0.55)', 'rgba(231,76,60,0.55)'],
+            borderColor: ['#e67e22', '#e74c3c'], borderWidth: 1 },
+        ]},
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false },
+            tooltip: { callbacks: { label: c => `$${fmt(Math.round(c.raw))}${t('mo_sfx')}` } } },
+          scales: { y: { ticks: { font: { size: 9 }, callback: v => Math.abs(v)>=10000 ? '$'+Math.round(v/1000)+'k' : '$'+fmt(v) } },
+            x: { ticks: { font: { size: 10 } }, grid: { display: false } } }
+        }
+      });
+    }
+  }
+}
+
 // ─── 圖表 / 敏感度分析卡片收合 ────────────────────────────────────────────
 const collapsedCards = { m_chart_body: true, l_chart_body: true };  // 走勢圖預設收合
 function toggleCard(bodyId, btnId) {
@@ -1466,18 +1614,22 @@ function calcMortgage() {
   const graceMonths = gracYears * 12;
   const repayMonths = totalMonths - graceMonths;
 
-  // 可增貸金額
-  const maxLoan    = mktVal * ltv;
-  const addlLoan   = Math.max(0, maxLoan - origLoan);
-
-  // 整合後總貸款 (refinance: 原貸 + 增貸，重新計算)
-  const totalLoan  = origLoan + addlLoan;
+  // 總貸款金額 = 銀行房屋估價 × 可貸成數
+  const totalLoan  = mktVal * ltv;
+  // 可增貸金額 = 總貸款金額 扣除 清償原有貸款
+  const addlLoan   = Math.max(0, totalLoan - repayOther);
   const mNewRate   = newRate / 12;
 
   // 寬限期月付 = 只付利息
   const gracePayment = totalLoan * mNewRate;
   // 還本期月付
   const repayPayment = pmt(totalLoan, mNewRate, repayMonths);
+
+  // 分項：清償原有貸款 / 增貸 各自的月付（各自利率，攤還本利）
+  const repayRate  = v('m_repay_rate') / 100;
+  const addlRate   = v('m_addl_rate') / 100;
+  const repayTranchePay = repayOther > 0 ? pmt(repayOther, repayRate / 12, repayMonths) : 0;
+  const addlTranchePay  = addlLoan   > 0 ? pmt(addlLoan,   addlRate  / 12, repayMonths) : 0;
 
   // 投入基金（可多筆，加總）
   const investInfo = getMortgageInvest();
@@ -1492,7 +1644,8 @@ function calcMortgage() {
   const origGraceRate = v('m_grace_rate') / 100;
   const mOrigRate  = origRate / 12;
   const origGrace  = origLoan * origGraceRate / 12;
-  const origRepay  = pmt(origLoan, mOrigRate, repayMonths);
+  const manualPay  = v('m_manual_pay');   // 使用者自行輸入的目前本利攤月付款
+  const origRepay  = manualPay > 0 ? manualPay : pmt(origLoan, mOrigRate, repayMonths);
 
   // 各卡片內嵌試算結果（金額一律以「元」顯示）
   const crRow = (label, value, cls = '') =>
@@ -1501,14 +1654,16 @@ function calcMortgage() {
   // 🏦 原有房貸：兩段利率下的月付參考
   document.getElementById('m_orig_results').innerHTML =
     crRow(`${t('orig_grace_pay')}（${(origGraceRate * 100).toFixed(2)}%）`, '$' + fmt(origGrace)) +
-    crRow(`${t('orig_repay_pay')}（${(origRate * 100).toFixed(2)}%）`, '$' + fmt(origRepay));
+    crRow(`${t('orig_repay_pay')}（${(origRate * 100).toFixed(2)}%）${manualPay > 0 ? ' ✎' : ''}`, '$' + fmt(origRepay));
 
-  // 📋 增額貸款：可增貸/總貸款 + 整合後月付
+  // 📋 增額貸款：總貸款/可增貸 + 整合後月付 + 分項月付
   document.getElementById('m_addl_results').innerHTML =
-    crRow(t('r_add_loan'), '$' + fmt(addlLoan), 'accent') +
     crRow(t('r_total_loan'), '$' + fmt(totalLoan)) +
+    `<div class="cr-row"><span class="cr-label" title="${t('r_add_loan_tip')}">${t('r_add_loan')} <span style="color:var(--primary);cursor:help;">❓</span></span><span class="cr-value accent">$${fmt(addlLoan)}</span></div>` +
     crRow(t('r_grace_pay'), '$' + fmt(gracePayment)) +
-    crRow(t('r_repay_pay'), '$' + fmt(repayPayment));
+    crRow(t('r_repay_pay'), '$' + fmt(repayPayment)) +
+    crRow(t('r_repay_tranche_pay'), '$' + fmt(repayTranchePay)) +
+    crRow(t('r_addl_tranche_pay'), '$' + fmt(addlTranchePay));
 
   // 💰 投資配息：每筆分別小結，多筆時加總
   let investHtml = '';
@@ -1767,10 +1922,12 @@ function calcLoan() {
 
 // 範例預設值
 const MORTGAGE_DEFAULTS = {
-  m_loan: '16000000', m_years: '30', m_grace: '3', m_grace_rate: '1.9', m_rate: '1.9',
+  m_loan: '16000000', m_years: '30', m_grace: '3', m_grace_rate: '1.9', m_rate: '1.9', m_manual_pay: '',
   m_value: '38000000', m_ltv: '80', m_new_rate: '2.07',
-  m_repay_other: '0', m_reserve: '0',
-  m_invest_amt: '14400000', m_div_rate: '8'
+  m_repay_other: '0', m_repay_rate: '1.9', m_addl_rate: '2.07', m_reserve: '0',
+  m_invest_amt: '14400000', m_div_rate: '8',
+  m_asset_amt: '0', m_asset_rate: '2.5',
+  n_price: '20000000', n_ltv: '80', n_grace: '3', n_grace_rate: '2.0', n_rate: '2.2', n_years: '30'
 };
 const LOAN_DEFAULTS = {
   l_loan: '10000000', l_months: '84', l_grace: '0', l_rate: '3',
@@ -1780,12 +1937,16 @@ const LOAN_DEFAULTS = {
 // ─── 分組快照系統（每張 card 獨立控制）────────────────────────────────────
 // 每組定義：fields（欄位 id 陣列）、restoreBtn id、calcFn（還原後重算）
 const SNAP_GROUPS = {
-  m_orig:   { fields: ['m_loan','m_years','m_grace','m_grace_rate','m_rate'],
+  m_orig:   { fields: ['m_loan','m_years','m_grace','m_grace_rate','m_rate','m_manual_pay'],
                restoreBtn: 'btn_m_orig_restore', calcFn: ()=>calcMortgage() },
-  m_addl:   { fields: ['m_value','m_ltv','m_new_rate','m_repay_other','m_reserve'],
+  m_addl:   { fields: ['m_value','m_ltv','m_new_rate','m_repay_other','m_repay_rate','m_addl_rate','m_reserve'],
                restoreBtn: 'btn_m_addl_restore', calcFn: ()=>calcMortgage() },
   m_invest: { fields: ['m_invest_amt','m_div_rate'],
                restoreBtn: 'btn_m_inv_restore',  calcFn: ()=>calcMortgage() },
+  m_asset:  { fields: ['m_asset_amt','m_asset_rate'],
+               restoreBtn: 'btn_m_asset_restore', calcFn: ()=>calcAsset() },
+  m_nh:     { fields: ['n_price','n_ltv','n_grace','n_grace_rate','n_rate','n_years'],
+               restoreBtn: 'btn_m_nh_restore', calcFn: ()=>calcNewHouse() },
   l_orig:   { fields: ['l_loan','l_months','l_grace','l_rate','l_fee'],
                restoreBtn: 'btn_l_orig_restore', calcFn: ()=>calcLoan() },
   l_invest: { fields: ['l_invest','l_div_rate','l_refi_yr'],
@@ -2394,6 +2555,8 @@ function loadPlan(planId) {
       document.getElementById(`mi_rate_${rid}`).value = r.rate;
     });
     calcMortgage();
+    calcAsset();
+    calcNewHouse();
   } else if (plan.panel === 'loan') {
     Object.entries(plan.values).forEach(([id, val]) => put(id, val));
     calcLoan();
@@ -2770,28 +2933,38 @@ function toggleAddlLoan() {
 
 // 當貸款金額或增額條件變動時，自動試算並填入「投入配息金額」
 function autoFillInvest() {
-  const origLoan   = parseFloat(document.getElementById('m_loan')?.value)  || 0;
   const mktVal     = parseFloat(document.getElementById('m_value')?.value) || 0;
   const ltv        = (parseFloat(document.getElementById('m_ltv')?.value)  || 0) / 100;
   const repayOther = parseFloat(document.getElementById('m_repay_other')?.value) || 0;
   const reserve    = parseFloat(document.getElementById('m_reserve')?.value)    || 0;
-  const addlLoan   = Math.max(0, mktVal * ltv - origLoan);
-  const suggested  = Math.max(0, addlLoan - repayOther - reserve);
+  // 可增貸金額 = 總貸款金額(估價×成數) − 清償原有貸款；再扣預留預備金 = 建議投入
+  const addlLoan   = Math.max(0, mktVal * ltv - repayOther);
+  const suggested  = Math.max(0, addlLoan - reserve);
   const el = document.getElementById('m_invest_amt');
   if (el) el.value = suggested;
 }
 
 // ─── Tooltip 說明 ──────────────────────────────────────────────────────────
 const FIELD_TIPS = {
-  m_loan:        { zh: '目前向銀行借貸的房貸本金總額', en: 'Total principal of your existing mortgage' },
+  m_loan:        { zh: '初始向銀行借貸的房貸本金總額', en: 'Initial principal of your mortgage' },
+  m_manual_pay:  { zh: '自行輸入目前實際的本利攤月付款；留空則自動試算', en: 'Enter your actual monthly P+I payment; leave blank to auto-calculate' },
   m_years:       { zh: '貸款總年限（含寬限期）', en: 'Total loan term including grace period' },
   m_grace:       { zh: '寬限期間只需付利息、不用還本金，月付金額較低', en: 'Grace period: interest-only payments, no principal repayment' },
   m_grace_rate:  { zh: '寬限期間適用的年利率', en: 'Annual interest rate during the grace period' },
   m_rate:        { zh: '寬限期結束後適用的年利率', en: 'Annual interest rate after the grace period ends' },
   m_value:       { zh: '銀行對房屋的增貸估值，用來計算增額貸款的上限金額', en: "Bank's appraised value for refinancing, determines the max additional loan amount" },
-  m_ltv:         { zh: '銀行可貸金額佔市值的上限比例，如 80% 表示市值 3,000 萬最多貸 2,400 萬', en: 'Max loan-to-value ratio (e.g. 80% means max loan = 80% of property value)' },
+  m_ltv:         { zh: '銀行可貸金額佔估價的上限比例', en: 'Max loan-to-value ratio against the appraised value' },
   m_new_rate:    { zh: '增額整合後新房貸的年利率', en: 'New annual rate on the refinanced combined mortgage' },
-  m_repay_other: { zh: '增貸資金中用於清償信貸或其他現有負債的金額', en: 'Amount from additional loan used to repay existing debts' },
+  m_repay_other: { zh: '總貸款金額中用於清償原有貸款的金額', en: 'Amount of total loan used to repay the existing mortgage' },
+  m_repay_rate:  { zh: '清償原有貸款部分適用的年利率', en: 'Annual rate on the portion used to repay the existing loan' },
+  m_addl_rate:   { zh: '增貸（新增資金）部分適用的年利率', en: 'Annual rate on the additional (new cash) portion' },
+  m_asset_amt:   { zh: '以現有資產向銀行借出的金額', en: 'Amount borrowed against existing assets' },
+  m_asset_rate:  { zh: '資產借出的年利率', en: 'Annual interest rate on the asset-backed loan' },
+  n_price:       { zh: '預計新購入房屋的總價', en: 'Total price of the property you plan to purchase' },
+  n_ltv:         { zh: '新購屋房貸可貸金額佔總價的比例', en: 'Loan-to-value ratio for the new home purchase' },
+  n_grace:       { zh: '新購屋房貸的寬限期年數', en: 'Grace period (years) for the new mortgage' },
+  n_grace_rate:  { zh: '新購屋寬限期間適用的年利率', en: 'Annual rate during the new mortgage grace period' },
+  n_rate:        { zh: '新購屋寬限期後適用的年利率', en: 'Annual rate after the new mortgage grace period' },
   m_reserve:     { zh: '從增貸資金預留的現金備用金，不投入基金', en: 'Cash reserve held back from additional loan, not invested in fund' },
   m_invest_amt:  { zh: '實際投入配息基金的金額；依增貸金額自動試算，也可手動調整', en: 'Amount invested in dividend fund; auto-filled from additional loan, manually adjustable' },
   m_div_rate:    { zh: '配息基金的預估年化報酬率，如 8% 表示每投入 100 萬每年配 8 萬', en: 'Estimated annual return of the dividend fund (e.g. 8% = $80k/yr per $1M invested)' },
@@ -3248,6 +3421,8 @@ function toggleCollapse(bodyId, iconId) {
 // Init
 updateUnitLabels();       // 金額輸入單位標籤
 calcMortgage();
+calcAsset();
+calcNewHouse();
 calcLoan();
 loadBrandFromStorage();   // calls applyBrand() → updateDisclaimers()
 loadPlansFromStorage();
