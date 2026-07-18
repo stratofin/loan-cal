@@ -1398,9 +1398,11 @@ function renderCfSummaryM() {
   const net = div - pay;
   const pos = net >= 0;
   // 以零軸為基準：正值向上、負值向下長
+  // X 軸固定抬高：底部永遠預留空間（至少上方最大值的 30%，負值更大時自動加深）
   const H = 140;                                  // 繪圖區高度
-  const negExt = Math.max(0, -net);               // 下方延伸 = 負的淨現金流
-  const scale  = H / ((Math.max(div, 1)) + negExt);
+  const topMax = Math.max(div, 1);
+  const negExt = Math.max(-net, topMax * 0.3);    // 下方保留區
+  const scale  = H / (topMax + negExt);
   const base   = Math.round(negExt * scale) + 4;  // 零軸距底部高度
   const px = vv => Math.round(Math.abs(vv) * scale);
   // 各長條（絕對定位：bottom 距零軸）
