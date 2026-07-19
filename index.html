@@ -732,6 +732,7 @@
         <div class="card-title" data-i18n="cfs_title">📊 每月現金流總結</div>
       </div>
       <div id="m_cf_summary"></div>
+      <div style="margin-top:8px;padding:7px 10px;background:#f7fafd;border-left:3px solid var(--primary);border-radius:5px;font-size:0.74rem;color:var(--muted);line-height:1.5;" data-i18n="cfs_note">※ 圖表的「扣除月付金」＝「原有房貸資料、增額貸款資料、資產借出再次活化資料、預計新購屋資料」四項中的各項月付金加總；若該標題內容未填任何資料，視為 0。</div>
     </div>
 
     <!-- 圖表 + 敏感度 -->
@@ -763,8 +764,8 @@
             <button class="btn-restore-sm" id="btn_m_asset_restore" onclick="restoreGroup('m_asset')" data-i18n="btn_restore_snap" disabled>↩ 還原</button>
           </div>
         </div>
-        <div class="field"><label data-i18n="asset_amt">資產借出金額</label><div class="input-wrap"><input type="number" class="money" id="m_asset_amt" value="0" oninput="calcAsset()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
-        <div class="field"><label data-i18n="asset_rate">資產借出利率</label><div class="input-wrap"><input type="number" id="m_asset_rate" value="2.5" step="0.01" oninput="calcAsset()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="asset_amt">資產借出金額</label><div class="input-wrap"><input type="number" class="money" id="m_asset_amt" value="0" oninput="calcAsset();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+        <div class="field"><label data-i18n="asset_rate">資產借出利率</label><div class="input-wrap"><input type="number" id="m_asset_rate" value="2.5" step="0.01" oninput="calcAsset();calcMortgage()"><span class="unit">%</span></div></div>
         <div class="card-results" id="m_asset_results"></div>
         <div id="m_asset_chart_wrap" style="position:relative;height:170px;margin-top:8px;"><canvas id="m_asset_chart"></canvas></div>
         <div id="m_asset_chart_hint" style="display:none;margin-top:8px;padding:18px;text-align:center;color:var(--muted);font-size:0.78rem;background:#f7fafd;border:1px dashed var(--border);border-radius:7px;" data-i18n="asset_hint">輸入資產借出金額後即顯示圖表</div>
@@ -779,12 +780,12 @@
             <button class="btn-restore-sm" id="btn_m_nh_restore" onclick="restoreGroup('m_nh')" data-i18n="btn_restore_snap" disabled>↩ 還原</button>
           </div>
         </div>
-        <div class="field"><label data-i18n="nh_price">預計新購屋總價</label><div class="input-wrap"><input type="number" class="money" id="n_price" value="20000000" oninput="calcNewHouse()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
-        <div class="field"><label data-i18n="nh_ltv">預計購屋貸款成數</label><div class="input-wrap"><input type="number" id="n_ltv" value="80" step="1" oninput="calcNewHouse()"><span class="unit">%</span></div></div>
-        <div class="field"><label data-i18n="nh_grace">寬限期</label><div class="input-wrap"><input type="number" id="n_grace" value="3" oninput="calcNewHouse()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
-        <div class="field"><label data-i18n="nh_grace_rate">寬限期利率</label><div class="input-wrap"><input type="number" id="n_grace_rate" value="2.0" step="0.01" oninput="calcNewHouse()"><span class="unit">%</span></div></div>
-        <div class="field"><label data-i18n="nh_rate">寬限期後年利率</label><div class="input-wrap"><input type="number" id="n_rate" value="2.2" step="0.01" oninput="calcNewHouse()"><span class="unit">%</span></div></div>
-        <div class="field"><label data-i18n="nh_years">貸款年限</label><div class="input-wrap"><input type="number" id="n_years" value="30" oninput="calcNewHouse()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
+        <div class="field"><label data-i18n="nh_price">預計新購屋總價</label><div class="input-wrap"><input type="number" class="money" id="n_price" value="" oninput="calcNewHouse();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
+        <div class="field"><label data-i18n="nh_ltv">預計購屋貸款成數</label><div class="input-wrap"><input type="number" id="n_ltv" value="80" step="1" oninput="calcNewHouse();calcMortgage()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="nh_grace">寬限期</label><div class="input-wrap"><input type="number" id="n_grace" value="3" oninput="calcNewHouse();calcMortgage()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
+        <div class="field"><label data-i18n="nh_grace_rate">寬限期利率</label><div class="input-wrap"><input type="number" id="n_grace_rate" value="2.0" step="0.01" oninput="calcNewHouse();calcMortgage()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="nh_rate">寬限期後年利率</label><div class="input-wrap"><input type="number" id="n_rate" value="2.2" step="0.01" oninput="calcNewHouse();calcMortgage()"><span class="unit">%</span></div></div>
+        <div class="field"><label data-i18n="nh_years">貸款年限</label><div class="input-wrap"><input type="number" id="n_years" value="30" oninput="calcNewHouse();calcMortgage()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
         <div class="card-results" id="m_nh_results"></div>
         <div style="position:relative;height:170px;margin-top:8px;"><canvas id="m_nh_chart"></canvas></div>
       </div>
@@ -1118,6 +1119,7 @@ const i18n = {
     orig_grace_pay:'原貸寬限期月付（利息）', orig_repay_pay:'原貸還本期月付（本利）',
     sum_invest:'合計投入金額', sum_monthly_div:'合計每月配息',
     cfs_title:'📊 每月現金流總結',
+    cfs_note:'※ 圖表的「扣除月付金」＝「原有房貸資料、增額貸款資料、資產借出再次活化資料、預計新購屋資料」四項中的各項月付金加總；若該標題內容未填任何資料，視為 0。',
     cfs_div:'每月配息收益', cfs_pay:'扣除月付金', cfs_net:'每月淨現金流',
     wm_text:'本數據僅供參考',
     r_add_loan:'可增貸金額', r_total_loan:'總貸款金額', r_invest_amt:'投入基金金額',
@@ -1201,6 +1203,7 @@ const i18n = {
     orig_grace_pay:'Orig. Grace Pay (Int.)', orig_repay_pay:'Orig. Repayment (P+I)',
     sum_invest:'Total Invested', sum_monthly_div:'Total Monthly Div',
     cfs_title:'📊 Monthly Cash Flow Summary',
+    cfs_note:'※ "Less Payment" in the chart = the sum of monthly payments from the four sections (Original Mortgage, Additional Loan, Asset Reactivation, New Home Purchase); sections left blank count as 0.',
     cfs_div:'Monthly Dividend', cfs_pay:'Less Payment', cfs_net:'Net Monthly Cash Flow',
     wm_text:'For Reference Only',
     r_add_loan:'Additional Loan', r_total_loan:'Total Loan', r_invest_amt:'Fund Investment',
@@ -1397,23 +1400,25 @@ function renderCfSummaryM() {
   const pay = mCfPhase === 'grace' ? mCfData.gracePay : mCfData.repayPay;
   const net = div - pay;
   const pos = net >= 0;
-  // 方向規則：數值為正 → 零軸向上；數值為負 → 零軸向下
-  // （配息、月付金為正值向上；淨現金流依正負決定方向）
-  // X 軸依狀況調整：有負值時下方空間自動加深，平時保留上方 30%
+  // 方向規則：數值為正 → 長條向上；數值為負 → 長條向下
+  // X 軸反向配合：全為正值時 X 軸下移（下方只留小空隙）；出現負值時 X 軸自動上移，騰出下方空間
   const H = 140;                                  // 繪圖區高度
-  const topMax  = Math.max(div, pay, pos ? net : 0, 1);
-  const downMax = Math.max(pos ? 0 : -net, topMax * 0.3);
-  const scale   = H / (topMax + downMax);
-  const base    = Math.round(downMax * scale) + 4;  // 零軸距底部高度
+  const topMax   = Math.max(div, pay > 0 ? pay : 0, pos ? net : 0, 1);
+  const downNeed = Math.max(pay < 0 ? -pay : 0, pos ? 0 : -net);   // 下方實際需要的量
+  const downMax  = downNeed > 0 ? Math.max(downNeed, topMax * 0.15) : topMax * 0.05;
+  const scale    = H / (topMax + downMax);
+  const base     = Math.round(downMax * scale) + 4;  // 零軸距底部高度
   const px = vv => Math.round(Math.abs(vv) * scale);
   const divH = Math.max(px(div), div > 0 ? 3 : 0);
-  const payH = Math.max(px(pay), pay > 0 ? 3 : 0);
+  const payH = Math.max(px(pay), Math.abs(pay) > 0.5 ? 3 : 0);
   const netH = Math.max(px(net), Math.abs(net) > 0.5 ? 3 : 0);
   // 配息：正值向上
   const divBar = div > 0 ? `<div class="cfs-abar g1" style="bottom:${base}px;height:${divH}px;"></div>` : '';
-  // 月付金：正值向上（紅色）
-  const payBar = pay > 0
-    ? `<div class="cfs-abar rd" style="bottom:${base}px;height:${payH}px;"></div>`
+  // 扣除月付金：正值向上、負值向下（紅色）
+  const payBar = Math.abs(pay) > 0.5
+    ? (pay > 0
+        ? `<div class="cfs-abar rd" style="bottom:${base}px;height:${payH}px;"></div>`
+        : `<div class="cfs-abar rd" style="bottom:${base - payH}px;height:${payH}px;"></div>`)
     : `<div class="cfs-abar zero" style="bottom:${base}px;height:4px;"></div>`;
   // 淨現金流：正值向上（深綠）、負值向下（紅）
   const netBar = Math.abs(net) > 0.5
@@ -1698,10 +1703,16 @@ function calcMortgage() {
   const manualPay  = v('m_manual_pay');   // 使用者自行輸入的目前本利攤月付款
   const origRepay  = manualPay > 0 ? manualPay : pmt(origLoan, mOrigRate, repayMonths);
 
-  // 增額貸款未填時，現金流回退用「原有房貸」的月付
-  const useOrig    = totalLoan <= 0 && origLoan > 0;
-  const cfGracePay = useOrig ? origGrace : gracePayment;
-  const cfRepayPay = useOrig ? origRepay : repayPayment;
+  // 扣除月付金 = 四張卡（原有房貸、增額貸款、資產借出、預計新購屋）月付金加總；未填資料視為 0
+  const assetPayM = moneyOf('m_asset_amt') * ((parseFloat(document.getElementById('m_asset_rate')?.value) || 0) / 100) / 12;
+  const nhLoanCF  = v('n_price') * (v('n_ltv') / 100);
+  const nhGraceY  = v('n_grace');
+  const nhYearsCF = v('n_years') || 30;
+  const nhGracePayCF = nhLoanCF * (v('n_grace_rate') / 100) / 12;
+  const nhRepayPayCF = nhLoanCF > 0 ? pmt(nhLoanCF, (v('n_rate') / 100) / 12, Math.max(12, (nhYearsCF - nhGraceY) * 12)) : 0;
+  const cfGracePay = origGrace + gracePayment + assetPayM + nhGracePayCF;
+  const cfRepayPay = origRepay + repayPayment + assetPayM + nhRepayPayCF;
+  const useOrig    = totalLoan <= 0 && origLoan > 0;   // 攤還表/走勢圖年限判斷用
 
   // 現金流
   const cf_grace   = monthlyDiv - cfGracePay;
@@ -2023,7 +2034,7 @@ const MORTGAGE_DEFAULTS = {
   m_repay_other: '0', m_repay_rate: '1.9', m_repay_years: '20', m_addl_rate: '2.07', m_addl_years: '3', m_reserve: '0',
   m_invest_amt: '14400000', m_div_rate: '8',
   m_asset_amt: '0', m_asset_rate: '2.5',
-  n_price: '20000000', n_ltv: '80', n_grace: '3', n_grace_rate: '2.0', n_rate: '2.2', n_years: '30'
+  n_price: '', n_ltv: '80', n_grace: '3', n_grace_rate: '2.0', n_rate: '2.2', n_years: '30'
 };
 const LOAN_DEFAULTS = {
   l_loan: '10000000', l_months: '84', l_grace: '0', l_rate: '3',
