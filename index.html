@@ -1397,23 +1397,25 @@ function renderCfSummaryM() {
   const pay = mCfPhase === 'grace' ? mCfData.gracePay : mCfData.repayPay;
   const net = div - pay;
   const pos = net >= 0;
-  // 以零軸為基準：正值向上、負值向下長
-  // X 軸固定抬高：底部永遠預留空間（至少上方最大值的 30%，負值更大時自動加深）
+  // 方向規則：數值為正 → 零軸向上；數值為負 → 零軸向下
+  // （配息、月付金為正值向上；淨現金流依正負決定方向）
+  // X 軸依狀況調整：有負值時下方空間自動加深，平時保留上方 30%
   const H = 140;                                  // 繪圖區高度
-  const topMax = Math.max(div, 1);
-  const negExt = Math.max(-net, topMax * 0.3);    // 下方保留區
-  const scale  = H / (topMax + negExt);
-  const base   = Math.round(negExt * scale) + 4;  // 零軸距底部高度
+  const topMax  = Math.max(div, pay, pos ? net : 0, 1);
+  const downMax = Math.max(pos ? 0 : -net, topMax * 0.3);
+  const scale   = H / (topMax + downMax);
+  const base    = Math.round(downMax * scale) + 4;  // 零軸距底部高度
   const px = vv => Math.round(Math.abs(vv) * scale);
-  // 各長條（絕對定位：bottom 距零軸）
   const divH = Math.max(px(div), div > 0 ? 3 : 0);
   const payH = Math.max(px(pay), pay > 0 ? 3 : 0);
   const netH = Math.max(px(net), Math.abs(net) > 0.5 ? 3 : 0);
+  // 配息：正值向上
   const divBar = div > 0 ? `<div class="cfs-abar g1" style="bottom:${base}px;height:${divH}px;"></div>` : '';
-  // 紅色長條：從配息頂端往下扣 → 底部落在淨現金流位置（可為零軸下方）
+  // 月付金：正值向上（紅色）
   const payBar = pay > 0
-    ? `<div class="cfs-abar rd" style="bottom:${base + Math.round(net * scale)}px;height:${payH}px;"></div>`
+    ? `<div class="cfs-abar rd" style="bottom:${base}px;height:${payH}px;"></div>`
     : `<div class="cfs-abar zero" style="bottom:${base}px;height:4px;"></div>`;
+  // 淨現金流：正值向上（深綠）、負值向下（紅）
   const netBar = Math.abs(net) > 0.5
     ? (pos
         ? `<div class="cfs-abar g2" style="bottom:${base}px;height:${netH}px;"></div>`
