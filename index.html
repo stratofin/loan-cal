@@ -1691,16 +1691,21 @@ function calcMortgage() {
   const invest     = investInfo.invest;
   const monthlyDiv = investInfo.monthlyDiv;
 
-  // 現金流
-  const cf_grace   = monthlyDiv - gracePayment;
-  const cf_repay   = monthlyDiv - repayPayment;
-
   // 原貸款月付參考：寬限期用寬限期利率、寬限後用寬限後年利率
   const origGraceRate = v('m_grace_rate') / 100;
   const mOrigRate  = origRate / 12;
   const origGrace  = origLoan * origGraceRate / 12;
   const manualPay  = v('m_manual_pay');   // 使用者自行輸入的目前本利攤月付款
   const origRepay  = manualPay > 0 ? manualPay : pmt(origLoan, mOrigRate, repayMonths);
+
+  // 增額貸款未填時，現金流回退用「原有房貸」的月付
+  const useOrig    = totalLoan <= 0 && origLoan > 0;
+  const cfGracePay = useOrig ? origGrace : gracePayment;
+  const cfRepayPay = useOrig ? origRepay : repayPayment;
+
+  // 現金流
+  const cf_grace   = monthlyDiv - cfGracePay;
+  const cf_repay   = monthlyDiv - cfRepayPay;
 
   // 各卡片內嵌試算結果（金額一律以「元」顯示）
   const crRow = (label, value, cls = '') =>
@@ -1746,18 +1751,40 @@ function calcMortgage() {
   document.getElementById('m_payment_detail').innerHTML = `
     <div class="summary-block" style="margin:0;">
       <h4>${t('pd_pre')}${(origRate*100).toFixed(2)}% ｜ ${t('m_repay_rate')} ${(repayRate*100).toFixed(2)}%・${t('m_addl_rate')} ${(addlRate*100).toFixed(2)}%</h4>
-      <div class="summary-row"><span class="s-label">${t('pd_grace')}</span><span class="s-value">$${fmt(gracePayment)}</span></div>
-      <div class="summary-row"><span class="s-label">${t('pd_repay')}</span><span class="s-value">$${fmt(repayPayment)}</span></div>
+      <div class="summary-row"><span class="s-label">${t('pd_grace')}</span><span class="s-value">$${fmt(cfGracePay)}</span></div>
+      <div class="summary-row"><span class="s-label">${t('pd_repay')}</span><span class="s-value">$${fmt(cfRepayPay)}</span></div>
       <div class="summary-row"><span class="s-label">${t('pd_addl')}</span><span class="s-value pos">$${fmt(addlLoan)}</span></div>
       <div class="summary-row"><span class="s-label">${t('pd_invest')}</span><span class="s-value pos">$${fmt(invest)}</span></div>
     </div>
   `;
 
-  // 攤還表：兩段式（清償 tranche 從第 1 期攤還；增貸 tranche 寬限期只付息，之後攤還）
+  // 攤還表
   let rows = '';
+  const MAX_ROWS = 360;
+  if (useOrig) {
+    // 只有原有房貸：以原貸條件模擬（寬限期付息、之後本利攤）
+    let bal = origLoan;
+    for (let i = 1; i <= Math.min(totalMonths, MAX_ROWS); i++) {
+      const isGrace = i <= graceMonths;
+      const interest = bal * (isGrace ? origGraceRate : origRate) / 12;
+      let principal = 0, payment = 0;
+      if (isGrace) { payment = interest; }
+      else { payment = origRepay; principal = Math.min(Math.max(0, payment - interest), bal); }
+      bal = Math.max(0, bal - principal);
+      const netCF = monthlyDiv - payment;
+      const isMilestone = (i % 12 === 0) || i === 1;
+      rows += `<tr class="${isMilestone ? 'milestone' : ''}">
+        <td>${i}<span class="badge ${isGrace ? 'badge-grace' : 'badge-repay'}">${isGrace ? t('badge_grace') : t('badge_repay')}</span></td>
+        <td>$${fmt(bal)}</td><td>$${fmt(interest)}</td><td>$${fmt(principal)}</td>
+        <td>$${fmt(payment)}</td>
+        <td>${invest > 0 ? '$' + fmt(monthlyDiv) : '−'}</td>
+        <td style="color:${netCF>=0?'var(--green)':'var(--red)'}; font-weight:700;">${fmtMoney(netCF)}</td>
+      </tr>`;
+    }
+  } else {
+  // 兩段式（清償 tranche 從第 1 期攤還；增貸 tranche 寬限期只付息，之後攤還）
   let balRepay = repayUsed, balAddl = addlLoan;
   const addlGraceMonths = addlGraceY * 12;
-  const MAX_ROWS = 360;
   for (let i = 1; i <= Math.min(trancheMonths, MAX_ROWS); i++) {
     const isGrace = i <= addlGraceMonths;
     // 清償 tranche
@@ -1784,18 +1811,20 @@ function calcMortgage() {
       <td style="color:${netCF>=0?'var(--green)':'var(--red)'}; font-weight:700;">${fmtMoney(netCF)}</td>
     </tr>`;
   }
+  }
   document.getElementById('m_amort_body').innerHTML = rows;
 
   // ── Chart + Sensitivity ──────────────────────────────────────────────────
-  const chartYears = Math.max(1, Math.round(repayYears));
+  const chartYears = Math.max(1, Math.round(useOrig ? years : repayYears));
+  const graceBoundY = useOrig ? gracYears : addlGraceY;
   const yLabels = Array.from({length: chartYears}, (_, i) => lang === 'zh' ? `第${i+1}年` : `Y${i+1}`);
-  const payD = yLabels.map((_, i) => Math.round(i < addlGraceY ? gracePayment : repayPayment));
+  const payD = yLabels.map((_, i) => Math.round(i < graceBoundY ? cfGracePay : cfRepayPay));
   const divD = yLabels.map(() => Math.round(monthlyDiv));
   mChart = renderCashflowChart('m_cashflow_chart', mChart, yLabels, payD, divD);
   renderMortgageSens(totalLoan, trancheMonths, monthlyDiv, v('m_addl_rate'));
 
   // 每月現金流總結（瀑布圖 + 大字卡）
-  mCfData = { monthlyDiv, gracePay: gracePayment, repayPay: repayPayment };
+  mCfData = { monthlyDiv, gracePay: cfGracePay, repayPay: cfRepayPay };
   renderCfSummaryM();
 }
 
