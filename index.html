@@ -43,6 +43,10 @@
 
   /* Grid */
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  /* 並排卡片：各自依內容高度，收合時整張卡跟著縮起來（不被隔壁拉高） */
+  .grid-cards { align-items: start; }
+  /* 收合後標題列不再留下分隔線與下邊距 */
+  .card.is-collapsed .card-title-row { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
   .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   .grid-top { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 10px; }
   .grid-top-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
@@ -736,7 +740,7 @@
     </div>
 
     <!-- 圖表 + 敏感度 -->
-    <div class="grid-2" style="margin-bottom:10px;">
+    <div class="grid-2 grid-cards" style="margin-bottom:10px;">
       <div class="card" style="min-width:0;">
         <div class="card-title-row">
           <div class="card-title" data-i18n="chart_cashflow_title">📈 每年現金流走勢</div>
@@ -754,7 +758,7 @@
     </div>
 
     <!-- 資產借出再次活化 + 預計新購屋 -->
-    <div class="grid-2" style="margin-bottom:10px;">
+    <div class="grid-2 grid-cards" style="margin-bottom:10px;">
       <!-- 資產借出再次活化資料 -->
       <div class="card" style="min-width:0;">
         <div class="card-title-row">
@@ -762,13 +766,16 @@
           <div class="action-btns">
             <button class="btn-clear-sm" onclick="clearGroup('m_asset')" data-i18n="btn_clear_fields">🗑 清除</button>
             <button class="btn-restore-sm" id="btn_m_asset_restore" onclick="restoreGroup('m_asset')" data-i18n="btn_restore_snap" disabled>↩ 還原</button>
+            <button class="btn-collapse" id="btn_m_asset_card" onclick="toggleCard('m_asset_body','btn_m_asset_card')">▲ 收合</button>
           </div>
         </div>
+        <div id="m_asset_body">
         <div class="field"><label data-i18n="asset_amt">資產借出金額</label><div class="input-wrap"><input min="0" type="number" class="money" id="m_asset_amt" value="0" oninput="calcAsset();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
         <div class="field"><label data-i18n="asset_rate">資產借出利率</label><div class="input-wrap"><input min="0" type="number" id="m_asset_rate" value="2.5" step="0.01" oninput="calcAsset();calcMortgage()"><span class="unit">%</span></div></div>
         <div class="card-results" id="m_asset_results"></div>
         <div id="m_asset_chart_wrap" style="position:relative;height:170px;margin-top:8px;"><canvas id="m_asset_chart"></canvas></div>
         <div id="m_asset_chart_hint" style="display:none;margin-top:8px;padding:18px;text-align:center;color:var(--muted);font-size:0.78rem;background:#f7fafd;border:1px dashed var(--border);border-radius:7px;" data-i18n="asset_hint">輸入資產借出金額後即顯示圖表</div>
+        </div>
       </div>
 
       <!-- 預計新購屋資料 -->
@@ -778,8 +785,10 @@
           <div class="action-btns">
             <button class="btn-clear-sm" onclick="clearGroup('m_nh')" data-i18n="btn_clear_fields">🗑 清除</button>
             <button class="btn-restore-sm" id="btn_m_nh_restore" onclick="restoreGroup('m_nh')" data-i18n="btn_restore_snap" disabled>↩ 還原</button>
+            <button class="btn-collapse" id="btn_m_nh_card" onclick="toggleCard('m_nh_body','btn_m_nh_card')">▲ 收合</button>
           </div>
         </div>
+        <div id="m_nh_body">
         <div class="field"><label data-i18n="nh_price">預計新購屋總價</label><div class="input-wrap"><input min="0" type="number" class="money" id="n_price" value="" oninput="calcNewHouse();calcMortgage()"><span class="unit" data-i18n="unit_twd">元</span></div></div>
         <div class="field"><label data-i18n="nh_ltv">預計購屋貸款成數</label><div class="input-wrap"><input min="0" type="number" id="n_ltv" value="80" step="1" oninput="calcNewHouse();calcMortgage()"><span class="unit">%</span></div></div>
         <div class="field"><label data-i18n="nh_grace">寬限期</label><div class="input-wrap"><input min="0" type="number" id="n_grace" value="3" oninput="calcNewHouse();calcMortgage()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
@@ -787,7 +796,9 @@
         <div class="field"><label data-i18n="nh_rate">寬限期後年利率</label><div class="input-wrap"><input min="0" type="number" id="n_rate" value="2.2" step="0.01" oninput="calcNewHouse();calcMortgage()"><span class="unit">%</span></div></div>
         <div class="field"><label data-i18n="nh_years">貸款年限</label><div class="input-wrap"><input min="0" type="number" id="n_years" value="30" oninput="calcNewHouse();calcMortgage()"><span class="unit" data-i18n="unit_yr">年</span></div></div>
         <div class="card-results" id="m_nh_results"></div>
-        <div style="position:relative;height:170px;margin-top:8px;"><canvas id="m_nh_chart"></canvas></div>
+        <div id="m_nh_chart_wrap" style="position:relative;height:170px;margin-top:8px;"><canvas id="m_nh_chart"></canvas></div>
+        <div id="m_nh_chart_hint" style="display:none;margin-top:8px;padding:18px;text-align:center;color:var(--muted);font-size:0.78rem;background:#f7fafd;border:1px dashed var(--border);border-radius:7px;" data-i18n="nh_hint">輸入預計新購屋總價後即顯示圖表</div>
+        </div>
       </div>
     </div>
 
@@ -865,7 +876,7 @@
     <div class="result-grid" id="l_results"></div>
 
     <!-- 圖表 + 敏感度 -->
-    <div class="grid-2" style="margin-bottom:10px;">
+    <div class="grid-2 grid-cards" style="margin-bottom:10px;">
       <div class="card" style="min-width:0;">
         <div class="card-title-row">
           <div class="card-title" data-i18n="chart_cashflow_title">📈 每年現金流走勢</div>
@@ -1096,6 +1107,7 @@ const i18n = {
     r_repay_tranche_pay:'清償原貸款月付', r_addl_int_pay:'增貸貸款月付（利息）', r_addl_pi_pay:'增貸貸款月付（本利）',
     r_add_loan_tip:'總貸款金額扣除清償原有貸款',
     asset_hint:'輸入資產借出金額後即顯示圖表',
+    nh_hint:'輸入預計新購屋總價後即顯示圖表',
     m_repay_other:'清償原有貸款', m_reserve:'預留預備金',
     m_plan_title:'💰 投資配息計畫', m_invest_amt_lbl:'投入配息金額', m_yield_rate:'預估年化報酬',
     m_div_rate:'年化配息率',
@@ -1180,6 +1192,7 @@ const i18n = {
     r_repay_tranche_pay:'Repay-Orig-Loan Monthly', r_addl_int_pay:'Additional-Loan Monthly (Int.)', r_addl_pi_pay:'Additional-Loan Monthly (P+I)',
     r_add_loan_tip:'Total loan minus repayment of existing mortgage',
     asset_hint:'Enter an asset loan amount to show the chart',
+    nh_hint:'Enter the new home price to show the chart',
     m_repay_other:'Repay Existing Loan', m_reserve:'Cash Reserve',
     m_plan_title:'💰 Investment Plan', m_invest_amt_lbl:'Invested Amount', m_yield_rate:'Est. Annual Return',
     m_div_rate:'Dividend Rate',
@@ -1571,8 +1584,16 @@ function calcNewHouse() {
     crRow(`${t('nh_grace_pay')}（${(gRate*100).toFixed(2)}%）`, '$' + fmt(gracePay)) +
     crRow(`${t('nh_repay_pay')}（${(rate*100).toFixed(2)}%）`, '$' + fmt(repayPay));
 
+  // 未輸入總價時顯示提示、隱藏圖表
+  const nhWrap = document.getElementById('m_nh_chart_wrap');
+  const nhHint = document.getElementById('m_nh_chart_hint');
+  if (nhWrap && nhHint) {
+    nhWrap.style.display = loan > 0 ? '' : 'none';
+    nhHint.style.display = loan > 0 ? 'none' : '';
+  }
+
   // 圖表：寬限期 vs 還本期 月付金
-  if (typeof Chart !== 'undefined') {
+  if (loan > 0 && typeof Chart !== 'undefined') {
     const ctx = document.getElementById('m_nh_chart');
     if (ctx) {
       nhChart = safeChart(ctx, nhChart, {
@@ -1602,17 +1623,22 @@ function toggleCard(bodyId, btnId) {
   const open = body.style.display === 'none';
   body.style.display = open ? '' : 'none';
   collapsedCards[bodyId] = !open;
+  // 收合時整張卡片縮到只剩標題列（移除分隔線與空白）
+  body.closest('.card')?.classList.toggle('is-collapsed', !open);
   const btn = document.getElementById(btnId);
   if (btn) btn.textContent = open ? t('m_addl_open') : t('m_addl_close');
   // 展開時重新繪圖（收合期間建立的圖表尺寸為 0，需重算）
   if (open) setTimeout(() => {
     if (bodyId === 'm_chart_body') calcMortgage();
     if (bodyId === 'l_chart_body') calcLoan();
+    if (bodyId === 'm_asset_body') calcAsset();
+    if (bodyId === 'm_nh_body')    calcNewHouse();
   }, 30);
 }
 function refreshCardToggleBtns() {
   [['m_chart_body','btn_m_chart'],['m_sens_body','btn_m_sens'],
-   ['l_chart_body','btn_l_chart'],['l_sens_body','btn_l_sens']].forEach(([b, id]) => {
+   ['l_chart_body','btn_l_chart'],['l_sens_body','btn_l_sens'],
+   ['m_asset_body','btn_m_asset_card'],['m_nh_body','btn_m_nh_card']].forEach(([b, id]) => {
     const btn = document.getElementById(id);
     if (btn) btn.textContent = collapsedCards[b] ? t('m_addl_close') : t('m_addl_open');
   });
@@ -3553,6 +3579,10 @@ function toggleCollapse(bodyId, iconId) {
 }
 
 // Init
+// 預設收合的卡片：同步套用收合外觀（標題列不留分隔線/空白）
+Object.keys(collapsedCards).forEach(bodyId => {
+  if (collapsedCards[bodyId]) document.getElementById(bodyId)?.closest('.card')?.classList.add('is-collapsed');
+});
 updateUnitLabels();       // 金額輸入單位標籤
 calcMortgage();
 calcAsset();
