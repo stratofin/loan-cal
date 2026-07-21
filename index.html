@@ -181,10 +181,21 @@
     border-radius: 4px; padding: 1px 7px; margin-bottom: 4px;
   }
 
+  /* 欄位代號徽章 */
+  .code-badge {
+    display: inline-block; min-width: 22px; text-align: center;
+    font-size: 0.62rem; font-weight: 800; letter-spacing: 0.3px;
+    color: var(--primary); background: var(--primary-light);
+    border-radius: 4px; padding: 1px 4px; margin-right: 5px;
+    vertical-align: middle; font-family: 'Segoe UI', sans-serif;
+  }
+  body.dark .code-badge { background: #24344a; color: #7ab8ff; }
+
   /* Card 內嵌試算結果 */
   .card-results { margin-top: 8px; padding-top: 7px; border-top: 2px dashed var(--primary-light); }
   .cr-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
   .cr-row .cr-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+  .cr-note { display: inline-block; margin-left: 5px; font-size: 0.66rem; font-weight: 700; color: var(--primary); opacity: 0.8; }
   .cr-row .cr-value { font-size: 0.86rem; font-weight: 700; color: var(--primary-dark); }
   .cr-row .cr-value.pos { color: var(--green); }
   .cr-row .cr-value.accent { color: var(--accent); }
@@ -619,6 +630,12 @@
   .cfs-lbl { flex: 1; text-align: center; font-size: 0.85rem; color: var(--muted); font-weight: 700; line-height: 1.35; }
   .cfs-lbl b { display: block; font-size: 1.7rem; font-weight: 900; color: var(--text); }
   .cfs-break { display: block; margin-top: 3px; font-size: 0.7rem; font-weight: 500; color: var(--muted); line-height: 1.45; word-break: break-word; }
+  /* 明細中的代號：與說明文字同大小、不加底色 */
+  .cfs-code {
+    font-size: inherit; font-weight: 700; color: var(--primary);
+    background: none; padding: 0; margin-right: 3px;
+  }
+  body.dark .cfs-code { color: #7ab8ff; }
   .cfs-card {
     flex: 1 1 220px; min-width: 200px; border-radius: 10px; padding: 14px;
     display: flex; flex-direction: column; justify-content: center; gap: 6px;
@@ -687,9 +704,9 @@
     <button onclick="zoomText(-1)" title="文字縮小">▼</button>
   </div>
   <select class="unit-select" id="unit_select" onchange="setUnit(parseFloat(this.value))" title="金額輸入單位">
-    <option value="1" selected>單位：元</option>
+    <option value="10000" selected>單位：萬元</option>
     <option value="1000">單位：千元</option>
-    <option value="10000">單位：萬元</option>
+    <option value="1">單位：元</option>
   </select>
   <button class="btn-header-icon" onclick="scrollToDisclaimer()" title="免責聲明">⚠️</button>
   <button class="btn-header-icon" id="btn_wm" onclick="toggleWatermark()" title="浮水印 開/關">💧</button>
@@ -1211,8 +1228,8 @@ const i18n = {
     sc_stats:'計畫統計表', sc_total_paid:'貸款期間總繳款金額（從口袋付出）', sc_fund_suf:'年後基金價值',
     sc_base:'本金不賺不賠', sc_good:'📈 本金獲利 20%', sc_bad:'📉 本金虧損 20%',
     sc_profit:'預期總獲利', sc_opt:'樂觀情境總獲利', sc_pes:'保守情境總獲利',
-    pd_pre:'🏦 原貸 ', pd_mid:'% ／ 整合後 ',
-    pd_grace:'寬限期月付（純利息）', pd_repay:'還本期月付（本+利）', pd_addl:'可增貸金額', pd_invest:'投入基金金額',
+    pd_pre:'🏦 原貸 ', pd_mid:'% ／ 整合後 ', pd_sub:'增貸貸款 ＋ 清償原貸款',
+    pd_grace:'寬限期月付（本+利）', pd_repay:'還本期月付（本+利）', pd_addl:'可增貸金額', pd_invest:'投入基金金額',
     sb_total_loan:'🏦 總貸款金額', sb_monthly_loan:'💸 月付貸款合計', sb_annual_int:'💸 年付利息合計',
     sb_invest:'📈 總投入配息金額', sb_monthly_div:'💰 月配息合計',
     sb_net_monthly:'📊 每月淨現金流', sb_net_annual:'📊 年度淨現金流', sb_yield:'🎯 整體年化報酬率',
@@ -1296,8 +1313,8 @@ const i18n = {
     sc_stats:'Plan Statistics', sc_total_paid:'Total Loan Payments', sc_fund_suf:'Yr Final Fund Value',
     sc_base:'Break Even', sc_good:'📈 +20% Return', sc_bad:'📉 −20% Return',
     sc_profit:'Expected Profit', sc_opt:'Optimistic Profit', sc_pes:'Conservative Profit',
-    pd_pre:'🏦 Orig ', pd_mid:'% / New ',
-    pd_grace:'Grace Payment (Int.)', pd_repay:'Repayment (P+I)', pd_addl:'Additional Loan', pd_invest:'Fund Investment',
+    pd_pre:'🏦 Orig ', pd_mid:'% / New ', pd_sub:'Additional loan ＋ repay-original loan',
+    pd_grace:'Grace Payment (P+I)', pd_repay:'Repayment (P+I)', pd_addl:'Additional Loan', pd_invest:'Fund Investment',
     sb_total_loan:'🏦 Total Loan', sb_monthly_loan:'💸 Monthly Payment', sb_annual_int:'💸 Annual Interest',
     sb_invest:'📈 Total Invested', sb_monthly_div:'💰 Monthly Div',
     sb_net_monthly:'📊 Net Monthly CF', sb_net_annual:'📊 Net Annual CF', sb_yield:'🎯 Overall Yield',
@@ -1408,8 +1425,10 @@ function updateUnitLabels() {
   const sel = document.getElementById('unit_select');
   if (sel) {
     const zh = lang === 'zh';
-    const texts = zh ? ['單位：元','單位：千元','單位：萬元'] : ['Unit: TWD','Unit: K','Unit: 10K'];
-    Array.from(sel.options).forEach((o, i) => { o.text = texts[i]; });
+    // 依 option 的 value 對應文字（不受排列順序影響）
+    const texts = zh ? { '1':'單位：元', '1000':'單位：千元', '10000':'單位：萬元' }
+                     : { '1':'Unit: TWD', '1000':'Unit: K', '10000':'Unit: 10K' };
+    Array.from(sel.options).forEach(o => { if (texts[o.value]) o.text = texts[o.value]; });
     sel.value = String(unitFactor);
   }
 }
@@ -1608,13 +1627,13 @@ function calcAsset() {
   const mInt = amt * rate / 12;   // 每月利息
   const yInt = amt * rate;        // 每年利息
 
-  const crRow = (label, value, cls='') =>
-    `<div class="cr-row"><span class="cr-label">${label}</span><span class="cr-value ${cls}">${value}</span></div>`;
+  const crRow = (label, value, cls='', code='') =>
+    `<div class="cr-row"><span class="cr-label">${codeTag(code)}${label}</span><span class="cr-value ${cls}">${value}</span></div>`;
   const el = document.getElementById('m_asset_results');
   if (el) el.innerHTML =
-    crRow(t('asset_amt'), '$' + fmt(amt)) +
-    crRow(t('asset_month_int'), '$' + fmt(mInt) + t('mo_sfx'), 'accent') +
-    crRow(t('asset_year_int'), '$' + fmt(yInt) + t('yr_sfx'), 'accent');
+    crRow(t('asset_amt'), '$' + fmt(amt), '', CODE.assetAmt) +
+    crRow(`${t('asset_month_int')}<span class="cr-note">= D1 × D2 ÷ 12</span>`, '$' + fmt(mInt) + t('mo_sfx'), 'accent', CODE.assetMonthInt) +
+    crRow(`${t('asset_year_int')}<span class="cr-note">= D1 × D2</span>`, '$' + fmt(yInt) + t('yr_sfx'), 'accent', CODE.assetYearInt);
 
   // 金額為 0 時顯示提示、隱藏圖表
   const wrap = document.getElementById('m_asset_chart_wrap');
@@ -1666,14 +1685,14 @@ function calcNewHouse() {
   const gracePay = loan * gRate / 12;
   const repayPay = pmt(loan, rate / 12, repayMo);
 
-  const crRow = (label, value, cls='') =>
-    `<div class="cr-row"><span class="cr-label">${label}</span><span class="cr-value ${cls}">${value}</span></div>`;
+  const crRow = (label, value, cls='', code='') =>
+    `<div class="cr-row"><span class="cr-label">${codeTag(code)}${label}</span><span class="cr-value ${cls}">${value}</span></div>`;
   const el = document.getElementById('m_nh_results');
   if (el) el.innerHTML =
-    crRow(t('nh_loan'), '$' + fmt(loan)) +
-    crRow(t('nh_down'), '$' + fmt(downPay), 'accent') +
-    crRow(`${t('nh_grace_pay')}（${(gRate*100).toFixed(2)}%）`, '$' + fmt(gracePay)) +
-    crRow(`${t('nh_repay_pay')}（${(rate*100).toFixed(2)}%）`, '$' + fmt(repayPay));
+    crRow(`${t('nh_loan')}<span class="cr-note">= E1 × E2</span>`, '$' + fmt(loan), '', CODE.nhLoan) +
+    crRow(`${t('nh_down')}<span class="cr-note">= E1 − E7</span>`, '$' + fmt(downPay), 'accent', CODE.nhDown) +
+    crRow(`${t('nh_grace_pay')}（${(gRate*100).toFixed(2)}%）`, '$' + fmt(gracePay), '', CODE.nhGracePay) +
+    crRow(`${t('nh_repay_pay')}（${(rate*100).toFixed(2)}%）`, '$' + fmt(repayPay), '', CODE.nhRepayPay);
 
   // 未輸入總價時顯示提示、隱藏圖表
   const nhWrap = document.getElementById('m_nh_chart_wrap');
@@ -1835,22 +1854,22 @@ function calcMortgage() {
   const cf_repay   = monthlyDiv - cfRepayPay;
 
   // 各卡片內嵌試算結果（金額一律以「元」顯示）
-  const crRow = (label, value, cls = '') =>
-    `<div class="cr-row"><span class="cr-label">${label}</span><span class="cr-value ${cls}">${value}</span></div>`;
+  const crRow = (label, value, cls = '', code = '') =>
+    `<div class="cr-row"><span class="cr-label">${codeTag(code)}${label}</span><span class="cr-value ${cls}">${value}</span></div>`;
 
   // 🏦 原有房貸：兩段利率下的月付參考
   document.getElementById('m_orig_results').innerHTML =
-    crRow(`${t('orig_grace_pay')}（${(origGraceRate * 100).toFixed(2)}%）`, '$' + fmt(origGrace)) +
-    crRow(`${t('orig_repay_pay')}（${(origRate * 100).toFixed(2)}%）${manualPay > 0 ? ' ✎' : ''}`, '$' + fmt(origRepay));
+    crRow(`${t('orig_grace_pay')}（${(origGraceRate * 100).toFixed(2)}%）`, '$' + fmt(origGrace), '', CODE.origGrace) +
+    crRow(`${t('orig_repay_pay')}（${(origRate * 100).toFixed(2)}%）${manualPay > 0 ? ' ✎' : ''}`, '$' + fmt(origRepay), '', CODE.origRepay);
 
   // 📋 增額貸款：總貸款/可增貸 + 房貸月付 + 分項月付
   document.getElementById('m_addl_results').innerHTML =
-    crRow(t('r_total_loan'), '$' + fmt(totalLoan)) +
-    `<div class="cr-row"><span class="cr-label" title="${t('r_add_loan_tip')}">${t('r_add_loan')} <span style="color:var(--primary);cursor:help;">❓</span></span><span class="cr-value accent">$${fmt(addlLoan)}</span></div>` +
-    `<div class="cr-row"><span class="cr-label" title="${t('r_mortgage_pay_tip')}">${t('r_mortgage_pay')} <span style="color:var(--primary);cursor:help;">❓</span></span><span class="cr-value">$${fmt(gracePayment)}</span></div>` +
-    crRow(t('r_repay_tranche_pay'), '$' + fmt(repayTranchePay)) +
-    crRow(t('r_addl_int_pay'), '$' + fmt(addlIntPay)) +
-    crRow(t('r_addl_pi_pay'), '$' + fmt(addlPiPay));
+    crRow(t('r_total_loan'), '$' + fmt(totalLoan), '', CODE.totalLoan) +
+    crRow(`${t('r_add_loan')}<span class="cr-note">= ${CODE.totalLoan} − ${CODE.repayOtherRef || 'B4'}</span>`, '$' + fmt(addlLoan), 'accent', CODE.addlLoan) +
+    crRow(`${t('r_mortgage_pay')}<span class="cr-note">= ${CODE.repayTranche} ＋ ${CODE.addlInt}</span>`, '$' + fmt(gracePayment), '', CODE.mortgagePay) +
+    crRow(t('r_repay_tranche_pay'), '$' + fmt(repayTranchePay), '', CODE.repayTranche) +
+    crRow(t('r_addl_int_pay'), '$' + fmt(addlIntPay), '', CODE.addlInt) +
+    crRow(t('r_addl_pi_pay'), '$' + fmt(addlPiPay), '', CODE.addlPi);
 
   // 💰 投資配息：每筆分別小結，多筆時加總
   let investHtml = '';
@@ -1859,12 +1878,12 @@ function calcMortgage() {
       investHtml += crRow(`#${i + 1} ${t('r_invest_amt')}（${(it.r * 100).toFixed(1)}%）`, '$' + fmt(it.a));
       investHtml += crRow(`#${i + 1} ${t('r_monthly_div')}`, '$' + fmt(it.d) + t('mo_sfx'), 'pos');
     });
-    investHtml += crRow(t('sum_invest'), '$' + fmt(invest), 'accent');
-    investHtml += crRow(t('sum_monthly_div'), '$' + fmt(monthlyDiv) + t('mo_sfx'), 'pos');
+    investHtml += crRow(t('sum_invest'), '$' + fmt(invest), 'accent', CODE.invest);
+    investHtml += crRow(t('sum_monthly_div'), '$' + fmt(monthlyDiv) + t('mo_sfx'), 'pos', CODE.monthlyDiv);
   } else {
     investHtml =
-      crRow(t('r_invest_amt'), '$' + fmt(invest)) +
-      crRow(t('r_monthly_div'), '$' + fmt(monthlyDiv) + t('mo_sfx'), 'pos');
+      crRow(t('r_invest_amt'), '$' + fmt(invest), '', CODE.invest) +
+      crRow(`${t('r_monthly_div')}<span class="cr-note">= ${CODE.invest} × C2 ÷ 12</span>`, '$' + fmt(monthlyDiv) + t('mo_sfx'), 'pos', CODE.monthlyDiv);
   }
   document.getElementById('m_invest_results').innerHTML = investHtml;
 
@@ -1878,6 +1897,7 @@ function calcMortgage() {
   document.getElementById('m_payment_detail').innerHTML = `
     <div class="summary-block" style="margin:0;">
       <h4>${t('pd_pre')}${(origRate*100).toFixed(2)}% ｜ ${t('m_repay_rate')} ${(repayRate*100).toFixed(2)}%・${t('m_addl_rate')} ${(addlRate*100).toFixed(2)}%</h4>
+      <div style="font-size:0.72rem;color:var(--muted);margin:-3px 0 6px;">${t('pd_sub')}</div>
       <div class="summary-row"><span class="s-label">${t('pd_grace')}</span><span class="s-value">$${fmt(cfGracePay)}</span></div>
       <div class="summary-row"><span class="s-label">${t('pd_repay')}</span><span class="s-value">$${fmt(cfRepayPay)}</span></div>
       <div class="summary-row"><span class="s-label">${t('pd_addl')}</span><span class="s-value pos">$${fmt(addlLoan)}</span></div>
@@ -1952,17 +1972,20 @@ function calcMortgage() {
 
   // 每月現金流總結（瀑布圖 + 大字卡）＋ 各項來源文字說明
   const join = arr => arr.length ? arr.join(' ＋ ') : '—';
+  const tag = c => `<span class="cfs-code">${c}</span>`;
+  // 卡片標題去除前面的圖示，明細只留代號與文字
+  const noIcon = s => String(s).replace(/^[^\p{L}\p{N}]+/u, '').trim();
   const divBreak = join(investInfo.items
     .filter(it => it.d > 0)
-    .map((it, i) => `${investInfo.items.length > 1 ? `#${i+1} ` : ''}${t('r_monthly_div')} $${fmt(it.d)}`));
+    .map((it, i) => `${investInfo.items.length > 1 ? `#${i+1} ` : tag(CODE.monthlyDiv)}${t('r_monthly_div')} $${fmt(it.d)}`));
   const payPartsG = [], payPartsR = [];
-  if (origGrace > 0) payPartsG.push(`${t('m_title')} $${fmt(origGrace)}`);
-  if (origRepay > 0) payPartsR.push(`${t('m_title')} $${fmt(origRepay)}`);
-  if (gracePayment > 0) payPartsG.push(`${t('m_addl_title')} $${fmt(gracePayment)}`);
-  if (repayPayment > 0) payPartsR.push(`${t('m_addl_title')} $${fmt(repayPayment)}`);
-  if (assetPayM > 0) { payPartsG.push(`${t('asset_title')} $${fmt(assetPayM)}`); payPartsR.push(`${t('asset_title')} $${fmt(assetPayM)}`); }
-  if (nhGracePayCF > 0) payPartsG.push(`${t('nh_title')} $${fmt(nhGracePayCF)}`);
-  if (nhRepayPayCF > 0) payPartsR.push(`${t('nh_title')} $${fmt(nhRepayPayCF)}`);
+  if (origGrace > 0) payPartsG.push(`${tag(CODE.origGrace)}${noIcon(t('m_title'))} $${fmt(origGrace)}`);
+  if (origRepay > 0) payPartsR.push(`${tag(CODE.origRepay)}${noIcon(t('m_title'))} $${fmt(origRepay)}`);
+  if (gracePayment > 0) payPartsG.push(`${tag(CODE.mortgagePay)}${noIcon(t('m_addl_title'))} $${fmt(gracePayment)}`);
+  if (repayPayment > 0) payPartsR.push(`${tag(CODE.repayTranche + '＋' + CODE.addlPi)}${noIcon(t('m_addl_title'))} $${fmt(repayPayment)}`);
+  if (assetPayM > 0) { payPartsG.push(`${tag(CODE.assetMonthInt)}${noIcon(t('asset_title'))} $${fmt(assetPayM)}`); payPartsR.push(`${tag(CODE.assetMonthInt)}${noIcon(t('asset_title'))} $${fmt(assetPayM)}`); }
+  if (nhGracePayCF > 0) payPartsG.push(`${tag(CODE.nhGracePay)}${noIcon(t('nh_title'))} $${fmt(nhGracePayCF)}`);
+  if (nhRepayPayCF > 0) payPartsR.push(`${tag(CODE.nhRepayPay)}${noIcon(t('nh_title'))} $${fmt(nhRepayPayCF)}`);
   mCfData = { monthlyDiv, gracePay: cfGracePay, repayPay: cfRepayPay,
               divBreak, payBreakG: join(payPartsG), payBreakR: join(payPartsR) };
   renderCfSummaryM();
@@ -3237,8 +3260,39 @@ const FIELD_TIPS = {
 
 // ── Tooltip JS engine (body-level bubble bypasses overflow:hidden on .field label) ──
 
-// 說明文字：直接以灰字顯示在欄位下方（取代 ❓ 提示泡泡）
+// ─── 欄位代號（A/B/C/D/E 區，方便對照運算來源）────────────────────────────
+const FIELD_CODES = {
+  // A 區：原有房貸資料
+  m_loan:'A1', m_years:'A2', m_grace:'A3', m_grace_rate:'A4', m_rate:'A5', m_manual_pay:'A6',
+  // B 區：增額貸款資料
+  m_value:'B1', m_ltv:'B2', m_new_rate:'B3', m_repay_other:'B4', m_repay_rate:'B5',
+  m_repay_years:'B6', m_addl_rate:'B7', m_addl_years:'B8', m_reserve:'B9',
+  // C 區：投資配息計畫
+  m_invest_amt:'C1', m_div_rate:'C2',
+  // D 區：資產借出再次活化
+  m_asset_amt:'D1', m_asset_rate:'D2',
+  // E 區：預計新購屋
+  n_price:'E1', n_ltv:'E2', n_grace:'E3', n_grace_rate:'E4', n_rate:'E5', n_years:'E6',
+};
+// 小結列代號
+const CODE = {
+  origGrace:'A7', origRepay:'A8',
+  totalLoan:'B10', addlLoan:'B11', mortgagePay:'B12', repayTranche:'B13', addlInt:'B14', addlPi:'B15',
+  invest:'C3', monthlyDiv:'C4',
+  assetAmt:'D3', assetMonthInt:'D4', assetYearInt:'D5',
+  nhLoan:'E7', nhDown:'E8', nhGracePay:'E9', nhRepayPay:'E10',
+};
+function codeTag(c) { return c ? `<span class="code-badge">${c}</span>` : ''; }
+
+// 說明文字：直接以灰字顯示在欄位下方（取代 ❓ 提示泡泡）＋ 欄位代號
 function initTooltips() {
+  // 為有代號的欄位加上代號標籤
+  Object.entries(FIELD_CODES).forEach(([fieldId, code]) => {
+    const input = document.getElementById(fieldId);
+    const label = input && input.closest('.field')?.querySelector('label');
+    if (!label || label.querySelector('.code-badge')) return;
+    label.insertAdjacentHTML('afterbegin', codeTag(code));
+  });
   Object.entries(FIELD_TIPS).forEach(([fieldId, tips]) => {
     const input = document.getElementById(fieldId);
     if (!input) return;
@@ -3639,7 +3693,7 @@ function toggleCollapse(bodyId, iconId) {
 Object.keys(collapsedCards).forEach(bodyId => {
   if (collapsedCards[bodyId]) document.getElementById(bodyId)?.closest('.card')?.classList.add('is-collapsed');
 });
-updateUnitLabels();       // 金額輸入單位標籤
+setUnit(10000, false);    // 預設金額輸入單位：萬元（HTML 預設值以元填寫，換算為面額）
 calcMortgage();
 calcAsset();
 calcNewHouse();
