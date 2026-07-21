@@ -12,6 +12,66 @@
     --text: #1e2d3d; --muted: #6b7e92;
     --shadow: 0 1px 6px rgba(26,110,181,0.10);
   }
+  /* ── 深色模式 ────────────────────────────────────────── */
+  body.dark {
+    --primary: #4a9eff; --primary-light: #1c2b3d; --primary-dark: #2b7fd4;
+    --accent: #f0932b; --green: #2ecc71; --red: #ff6b5b;
+    --bg: #12181f; --card: #1b232d; --border: #2c3947;
+    --text: #e6edf3; --muted: #93a4b5;
+    --shadow: 0 1px 6px rgba(0,0,0,0.45);
+  }
+  body.dark input[type=number],
+  body.dark .multi-input,
+  body.dark .modal-input,
+  body.dark .modal-textarea,
+  body.dark .cmp-select { background: #141c25; color: var(--text); border-color: var(--border); }
+  body.dark input:focus, body.dark .multi-input:focus { background: #1b232d; }
+  body.dark input::placeholder { color: #6b7c8d; }
+  body.dark .result-item,
+  body.dark .summary-block { background: #1c2b3d; border-color: #2c3947; }
+  body.dark .summary-block { background: linear-gradient(135deg,#18222e,#1c2b3d); }
+  body.dark .multi-row { background: #18212b; border-color: #2c3947; }
+  body.dark .multi-row:hover { background: #1c2b3d; }
+  body.dark .multi-block-header { background: #1c2b3d; }
+  body.dark .multi-block-body,
+  body.dark .modal-box,
+  body.dark .export-dropdown,
+  body.dark .plan-item { background: var(--card); }
+  body.dark .plan-item { border-color: var(--border); }
+  body.dark .modal-header { background: var(--card); }
+  body.dark tbody tr:nth-child(even) { background: #18212b; }
+  body.dark tbody tr:hover { background: #1c2b3d; }
+  body.dark tbody td { border-bottom-color: #232f3c; }
+  body.dark .milestone { background: #2a2517 !important; }
+  body.dark .detail-table th { background: #1c2b3d; }
+  body.dark .detail-table tr:last-child td { background: #18222e; }
+  body.dark .cashflow-box.pos { background: #16301f; border-color: #256b3e; }
+  body.dark .cashflow-box.neg { background: #35191a; border-color: #7a3833; }
+  body.dark .cfs-card.pos { background: linear-gradient(135deg,#16301f,#1b3d29); border-color: #256b3e; }
+  body.dark .cfs-card.neg { background: linear-gradient(135deg,#35191a,#42201f); border-color: #7a3833; }
+  body.dark .cfs-card.pos .cfs-card-value,
+  body.dark .cfs-lbl b[style*="1e8449"] { color: #4ade80 !important; }
+  body.dark .strategy-phase.phase-1 { background: #1c2b3d; }
+  body.dark .strategy-phase.phase-2 { background: #16301f; }
+  body.dark .strategy-phase.phase-3 { background: #2a2517; }
+  body.dark .scenario-card.base { background: #1c2b3d; border-color: #2b5c8a; }
+  body.dark .scenario-card.good { background: #16301f; border-color: #256b3e; }
+  body.dark .scenario-card.bad  { background: #35191a; border-color: #7a3833; }
+  body.dark .disclaimer-bar { background: #2a2517; border-color: #5c4a1e; }
+  body.dark .field-hint { color: #7d8fa1; }
+  body.dark .btn-clear, body.dark .btn-clear-sm,
+  body.dark .btn-restore-sm, body.dark .btn-collapse,
+  body.dark .btn-secondary { background: #1b232d; }
+  body.dark .btn-mode.interest { background: #2a2517; color: #e8b84b; }
+  body.dark .btn-mode.amort { background: #16301f; color: #4ade80; }
+  body.dark .btn-minus { background: #2c3947; color: var(--muted); }
+  body.dark .btn-del { background: #3a2020; }
+  body.dark .cfs-tab { background: #1b232d; color: var(--muted); }
+  body.dark .cfs-tab.active { background: var(--primary); color: #0f1620; border-color: var(--primary); }
+  body.dark #watermark-layer .wm { color: rgba(230,237,243,0.07); }
+  body.dark .cfs-baseline { border-top-color: #5a6b7d; }
+  body.dark input[type=file] { color: var(--text); }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); font-family: 'Segoe UI','Microsoft JhengHei',sans-serif; color: var(--text); font-size: 14px; }
 
@@ -94,6 +154,11 @@
   input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
   input:focus { outline: none; border-color: var(--primary); background: #fff; }
   .field-note { font-size: 0.72rem; color: var(--muted); margin-left: 116px; margin-top: -3px; margin-bottom: 4px; }
+  /* 欄位下方灰色說明文字 */
+  .field-hint {
+    font-size: 0.72rem; color: #9aa9b8; line-height: 1.45;
+    margin: -3px 0 7px 116px;
+  }
 
   /* Result items */
   .result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px,1fr)); gap: 8px; margin-bottom: 10px; }
@@ -247,6 +312,7 @@
   @media (max-width: 600px) {
     .grid-top, .grid-3, .grid-2, .grid-top-2, .scenario-grid { grid-template-columns: 1fr; }
     .field label { flex: 0 0 90px; font-size: 0.74rem; }
+    .field-hint { margin-left: 96px; font-size: 0.68rem; }
     /* Header: hide subtitle, compress padding */
     .header { padding: 8px 10px; gap: 6px; }
     .header p { display: none; }
@@ -273,6 +339,7 @@
     .header h1 { font-size: 0.82rem; }
     .btn-header-icon { padding: 3px 5px; }
     .field label { flex: 0 0 76px; font-size: 0.7rem; }
+    .field-hint { margin-left: 82px; }
     .field-note { margin-left: 82px; }
   }
 
@@ -551,6 +618,7 @@
   .cfs-lbls { display: flex; gap: 12px; padding: 0 4px; margin-top: 5px; }
   .cfs-lbl { flex: 1; text-align: center; font-size: 0.85rem; color: var(--muted); font-weight: 700; line-height: 1.35; }
   .cfs-lbl b { display: block; font-size: 1.7rem; font-weight: 900; color: var(--text); }
+  .cfs-break { display: block; margin-top: 3px; font-size: 0.7rem; font-weight: 500; color: var(--muted); line-height: 1.45; word-break: break-word; }
   .cfs-card {
     flex: 1 1 220px; min-width: 200px; border-radius: 10px; padding: 14px;
     display: flex; flex-direction: column; justify-content: center; gap: 6px;
@@ -565,21 +633,21 @@
   .cfs-chip { font-size: 0.72rem; font-weight: 700; color: var(--muted); }
   .cfs-chip b { color: var(--text); }
 
-  /* 文字縮放（單一格：A + 上下箭頭） */
+  /* 文字縮放（一個 A，左右各一顆箭頭） */
   .font-zoom {
     display: inline-flex; align-items: center; gap: 5px;
     background: rgba(255,255,255,0.18); color: #fff;
     border: 1.5px solid rgba(255,255,255,0.55); border-radius: 6px;
-    padding: 1px 7px; user-select: none;
+    padding: 2px 7px; user-select: none;
   }
-  .fz-label { font-size: 0.95rem; font-weight: 800; line-height: 1; }
-  .fz-btns { display: flex; flex-direction: column; }
-  .fz-btns button {
+  .font-zoom .fz-label { font-size: 0.88rem; font-weight: 800; line-height: 1; }
+  .font-zoom button {
     background: none; border: none; color: #fff; cursor: pointer;
-    font-size: 0.55rem; line-height: 1.1; padding: 1px 2px; opacity: 0.8;
+    font-size: 0.6rem; line-height: 1; padding: 2px 1px; opacity: 0.85;
     transition: all 0.12s;
   }
-  .fz-btns button:hover { opacity: 1; transform: scale(1.25); }
+  .font-zoom button:hover  { opacity: 1; transform: scale(1.2); }
+  .font-zoom button:active { transform: scale(0.9); }
 
   /* 金額輸入單位選擇 */
   .unit-select {
@@ -615,10 +683,8 @@
   </div>
   <div class="font-zoom" title="文字大小">
     <span class="fz-label">A</span>
-    <div class="fz-btns">
-      <button onclick="zoomText(1)"  title="文字放大">▲</button>
-      <button onclick="zoomText(-1)" title="文字縮小">▼</button>
-    </div>
+    <button onclick="zoomText(1)"  title="文字放大">▲</button>
+    <button onclick="zoomText(-1)" title="文字縮小">▼</button>
   </div>
   <select class="unit-select" id="unit_select" onchange="setUnit(parseFloat(this.value))" title="金額輸入單位">
     <option value="1" selected>單位：元</option>
@@ -636,6 +702,7 @@
       <button class="export-dropdown-item" id="btn_excel" onclick="exportExcelFromMenu()">📊 Excel 攤還表</button>
     </div>
   </div>
+  <button class="btn-header-icon" id="btn_theme" onclick="toggleTheme()" title="深色 / 淺色">🌙</button>
   <button class="btn-lang" id="btn_lang" onclick="toggleLang()">EN</button>
 </div>
 
@@ -1367,6 +1434,27 @@ function setUnit(nf, recalc = true) {
 function toYuanStr(s)   { if (s == null || String(s).trim() === '') return ''; const n = parseFloat(s); return isNaN(n) ? '' : String(n * unitFactor); }
 function fromYuanStr(s) { if (s == null || String(s).trim() === '') return ''; const n = parseFloat(s); return isNaN(n) ? '' : (unitFactor === 1 ? String(n) : String(+(n / unitFactor).toFixed(4))); }
 
+// ─── 深色 / 淺色主題 ──────────────────────────────────────────────────────
+let darkMode = false;
+function applyTheme() {
+  document.body.classList.toggle('dark', darkMode);
+  const btn = document.getElementById('btn_theme');
+  if (btn) { btn.textContent = darkMode ? '☀️' : '🌙'; btn.title = darkMode ? '淺色模式' : '深色模式'; }
+  // Chart.js 文字/格線顏色跟著主題
+  if (typeof Chart !== 'undefined') {
+    Chart.defaults.color = darkMode ? '#93a4b5' : '#6b7e92';
+    Chart.defaults.borderColor = darkMode ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.06)';
+  }
+  // 重繪圖表與浮水印
+  if (typeof calcMortgage === 'function') { calcMortgage(); calcAsset(); calcNewHouse(); calcLoan(); }
+  if (watermarkOn) buildWatermark();
+}
+function toggleTheme() {
+  darkMode = !darkMode;
+  try { localStorage.setItem('rc_theme', darkMode ? 'dark' : 'light'); } catch(e) {}
+  applyTheme();
+}
+
 // ─── 整體文字放大 / 縮小 ──────────────────────────────────────────────────
 let zoomLevel = 1;
 function zoomText(dir) {
@@ -1414,11 +1502,12 @@ function renderCfSummaryM() {
   const pay = mCfPhase === 'grace' ? mCfData.gracePay : mCfData.repayPay;
   const net = div - pay;
   const pos = net >= 0;
-  // 方向規則：以「顯示數值」的正負為準 → 正數在 X 軸上方、負數在 X 軸下方
-  // （扣除月付金顯示為 −$，屬於負數 → 往下長）；X 軸位置依上下所需空間自動調整
+  // 方向規則：以「原始數值」正負為準 → 正數在 X 軸上方、負數才往下
+  // （扣除月付金金額為正 → 往上；淨現金流為負 → 往下）
   const H = 140;                                  // 繪圖區高度
-  const topMax   = Math.max(div, pos ? net : 0, 1);            // 上方需要的量
-  const downNeed = Math.max(pay > 0 ? pay : 0, pos ? 0 : -net); // 下方需要的量（月付金為負向）
+  // 上方＝配息高度；下方＝淨現金流為負時往下延伸的量（紅條由配息頂端往下扣）
+  const topMax   = Math.max(div, pos ? net : 0, 1);
+  const downNeed = pos ? 0 : -net;
   const downMax  = downNeed > 0 ? downNeed : topMax * 0.05;
   const scale    = H / (topMax + downMax);
   const base     = Math.round(downMax * scale) + 4;  // 零軸距底部高度
@@ -1428,10 +1517,12 @@ function renderCfSummaryM() {
   const netH = Math.max(px(net), Math.abs(net) > 0.5 ? 3 : 0);
   // 配息（+）：X 軸上方
   const divBar = div > 0 ? `<div class="cfs-abar g1" style="bottom:${base}px;height:${divH}px;"></div>` : '';
-  // 扣除月付金（顯示 −$）：X 軸下方
+  // 扣除月付金（瀑布式）：頂端切齊「每月配息收益」頂端，往下倒扣至淨現金流位置
+  const payTopY = base + divH;                      // 配息長條頂端
+  const payBotY = pos ? base + netH : base - netH;  // 淨現金流頂／底端
   const payBar = Math.abs(pay) > 0.5
-    ? `<div class="cfs-abar rd" style="bottom:${base - payH}px;height:${payH}px;"></div>`
-    : `<div class="cfs-abar zero" style="bottom:${base}px;height:4px;"></div>`;
+    ? `<div class="cfs-abar rd" style="bottom:${payBotY}px;height:${Math.max(3, payTopY - payBotY)}px;"></div>`
+    : `<div class="cfs-abar zero" style="bottom:${payTopY}px;height:4px;"></div>`;
   // 淨現金流：正值向上（深綠）、負值向下（紅）
   const netBar = Math.abs(net) > 0.5
     ? (pos
@@ -1452,9 +1543,9 @@ function renderCfSummaryM() {
           <div class="cfs-col">${netBar}</div>
         </div>
         <div class="cfs-lbls">
-          <div class="cfs-lbl">${t('cfs_div')}<b style="color:#1e8449;">$${fmt(div)}</b></div>
-          <div class="cfs-lbl">${t('cfs_pay')}<b style="color:#e74c3c;">− $${fmt(pay)}</b></div>
-          <div class="cfs-lbl">${t('cfs_net')}<b style="color:${pos?'#1e8449':'#e74c3c'};">${pos?'':'−'} $${fmt(Math.abs(net))}</b></div>
+          <div class="cfs-lbl">${t('cfs_div')}<b style="color:#1e8449;">$${fmt(div)}</b><span class="cfs-break">${mCfData.divBreak || ''}</span></div>
+          <div class="cfs-lbl">${t('cfs_pay')}<b style="color:#e74c3c;">− $${fmt(pay)}</b><span class="cfs-break">${(mCfPhase==='grace'? mCfData.payBreakG : mCfData.payBreakR) || ''}</span></div>
+          <div class="cfs-lbl">${t('cfs_net')}<b style="color:${pos?'#1e8449':'#e74c3c'};">${pos?'':'−'} $${fmt(Math.abs(net))}</b><span class="cfs-break">$${fmt(div)} − $${fmt(pay)}</span></div>
         </div>
       </div>
       <div class="cfs-card ${pos?'pos':'neg'}">
@@ -1859,8 +1950,21 @@ function calcMortgage() {
   mChart = renderCashflowChart('m_cashflow_chart', mChart, yLabels, payD, divD);
   renderMortgageSens(totalLoan, trancheMonths, monthlyDiv, v('m_addl_rate'));
 
-  // 每月現金流總結（瀑布圖 + 大字卡）
-  mCfData = { monthlyDiv, gracePay: cfGracePay, repayPay: cfRepayPay };
+  // 每月現金流總結（瀑布圖 + 大字卡）＋ 各項來源文字說明
+  const join = arr => arr.length ? arr.join(' ＋ ') : '—';
+  const divBreak = join(investInfo.items
+    .filter(it => it.d > 0)
+    .map((it, i) => `${investInfo.items.length > 1 ? `#${i+1} ` : ''}${t('r_monthly_div')} $${fmt(it.d)}`));
+  const payPartsG = [], payPartsR = [];
+  if (origGrace > 0) payPartsG.push(`${t('m_title')} $${fmt(origGrace)}`);
+  if (origRepay > 0) payPartsR.push(`${t('m_title')} $${fmt(origRepay)}`);
+  if (gracePayment > 0) payPartsG.push(`${t('m_addl_title')} $${fmt(gracePayment)}`);
+  if (repayPayment > 0) payPartsR.push(`${t('m_addl_title')} $${fmt(repayPayment)}`);
+  if (assetPayM > 0) { payPartsG.push(`${t('asset_title')} $${fmt(assetPayM)}`); payPartsR.push(`${t('asset_title')} $${fmt(assetPayM)}`); }
+  if (nhGracePayCF > 0) payPartsG.push(`${t('nh_title')} $${fmt(nhGracePayCF)}`);
+  if (nhRepayPayCF > 0) payPartsR.push(`${t('nh_title')} $${fmt(nhRepayPayCF)}`);
+  mCfData = { monthlyDiv, gracePay: cfGracePay, repayPay: cfRepayPay,
+              divBreak, payBreakG: join(payPartsG), payBreakR: join(payPartsR) };
   renderCfSummaryM();
 }
 
@@ -3132,74 +3236,26 @@ const FIELD_TIPS = {
 };
 
 // ── Tooltip JS engine (body-level bubble bypasses overflow:hidden on .field label) ──
-function showTip(spanEl) {
-  const bubble = document.getElementById('tip-bubble');
-  if (!bubble) return;
-  bubble.textContent = spanEl.getAttribute('data-tip');
-  bubble.style.display = 'block';
-  bubble.style.visibility = 'hidden';
-  // Measure after render, then position
-  const rect = spanEl.getBoundingClientRect();
-  const bw   = bubble.offsetWidth;
-  const bh   = bubble.offsetHeight;
-  let left   = rect.left + rect.width / 2 - bw / 2;
-  let top    = rect.top - bh - 10;
-  // Clamp within viewport
-  if (left < 6)                         left = 6;
-  if (left + bw > window.innerWidth - 6) left = window.innerWidth - bw - 6;
-  if (top  < 6)                         top  = rect.bottom + 8; // flip below if at top of screen
-  bubble.style.left = left + 'px';
-  bubble.style.top  = top  + 'px';
-  bubble.style.visibility = 'visible';
-}
-function hideTip() {
-  const b = document.getElementById('tip-bubble');
-  if (b) b.style.display = 'none';
-}
 
+// 說明文字：直接以灰字顯示在欄位下方（取代 ❓ 提示泡泡）
 function initTooltips() {
-  // Create body-level bubble once
-  if (!document.getElementById('tip-bubble')) {
-    const b = document.createElement('div');
-    b.id = 'tip-bubble';
-    document.body.appendChild(b);
-  }
   Object.entries(FIELD_TIPS).forEach(([fieldId, tips]) => {
     const input = document.getElementById(fieldId);
     if (!input) return;
     const field = input.closest('.field');
     if (!field) return;
-    const label = field.querySelector('label');
-    if (!label || label.querySelector('.tip')) return;
-    const span = document.createElement('span');
-    span.className = 'tip';
-    span.setAttribute('data-field', fieldId);
-    span.setAttribute('data-tip', tips[lang] || tips.zh);
-    span.textContent = '❓';
-    // Desktop hover
-    span.addEventListener('mouseenter', () => showTip(span));
-    span.addEventListener('mouseleave', hideTip);
-    // Mobile tap toggle
-    span.addEventListener('touchstart', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      const b = document.getElementById('tip-bubble');
-      if (b && b.style.display !== 'none') { hideTip(); } else { showTip(span); }
-    }, { passive: false });
-    label.appendChild(span);
-  });
-  // Hide tooltip on touch outside
-  document.addEventListener('touchstart', e => {
-    if (!e.target.closest('.tip')) hideTip();
-  }, { passive: true });
-}
-
-function refreshTooltips() {
-  document.querySelectorAll('.tip[data-field]').forEach(el => {
-    const tips = FIELD_TIPS[el.getAttribute('data-field')];
-    if (tips) el.setAttribute('data-tip', tips[lang] || tips.zh);
+    let hint = field.nextElementSibling;
+    if (!hint || !hint.classList.contains('field-hint') || hint.dataset.for !== fieldId) {
+      hint = document.createElement('div');
+      hint.className = 'field-hint';
+      hint.dataset.for = fieldId;
+      field.insertAdjacentElement('afterend', hint);
+    }
+    hint.textContent = tips[lang] || tips.zh;
   });
 }
+// 語言切換時更新說明文字
+function refreshTooltips() { initTooltips(); }
 
 // ── Export dropdown ────────────────────────────────────────────────────────
 function toggleExportMenu(e) {
@@ -3594,6 +3650,13 @@ initTooltips();
 initSnapshotListeners();  // 監聽 focus，首次編輯前自動快照
 updateDisclaimers();      // ensure default text renders even before brand loads
 try { if (localStorage.getItem('rc_watermark') === '1') toggleWatermark(true); } catch(e) {}
+// 主題：讀取上次設定，未設定則跟隨系統
+try {
+  const saved = localStorage.getItem('rc_theme');
+  darkMode = saved ? saved === 'dark'
+    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+} catch(e) {}
+applyTheme();
 </script>
 </body>
 </html>
