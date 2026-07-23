@@ -654,7 +654,9 @@
   /* 現金流總結（瀑布圖 + 大字卡） */
   .cfs-wrap { display: flex; gap: 14px; align-items: stretch; flex-wrap: wrap; }
   .cfs-left { flex: 1.5 1 280px; min-width: 240px; }
-  .cfs-tabs { display: flex; gap: 5px; margin-bottom: 8px; }
+  .cfs-tabs { display: flex; gap: 5px; margin-bottom: 6px; }
+  .cfs-grace-note { font-size: 0.72rem; font-weight: 700; color: var(--primary); margin: 0 0 8px; }
+  body.dark .cfs-grace-note { color: #7ab8ff; }
   .cfs-tab {
     font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
     border: 1.5px solid var(--border); background: #fff; color: var(--muted); cursor: pointer;
@@ -1273,6 +1275,7 @@ const i18n = {
     orig_grace_pay:'原貸寬限期月付（利息）', orig_repay_pay:'原貸還本期月付（本利）',
     sum_invest:'合計投入金額', sum_monthly_div:'合計每月配息',
     cfs_title:'📊 每月現金流總結',
+    cfs_grace_years:'寬限期', cfs_take_min:'取較小',
     cfs_note:'※ 圖表的「扣除月付金」＝「原有房貸資料、增額貸款資料、資產借出再次活化資料、預計新購屋資料」四項中的各項月付金加總；若該標題內容未填任何資料，視為 0。',
     cfs_div:'每月配息收益', cfs_pay:'扣除月付金', cfs_net:'每月淨現金流',
     wm_text:'本數據僅供參考',
@@ -1361,6 +1364,7 @@ const i18n = {
     orig_grace_pay:'Orig. Grace Pay (Int.)', orig_repay_pay:'Orig. Repayment (P+I)',
     sum_invest:'Total Invested', sum_monthly_div:'Total Monthly Div',
     cfs_title:'📊 Monthly Cash Flow Summary',
+    cfs_grace_years:'Grace', cfs_take_min:'take min',
     cfs_note:'※ "Less Payment" in the chart = the sum of monthly payments from the four sections (Original Mortgage, Additional Loan, Asset Reactivation, New Home Purchase); sections left blank count as 0.',
     cfs_div:'Monthly Dividend', cfs_pay:'Less Payment', cfs_net:'Net Monthly Cash Flow',
     wm_text:'For Reference Only',
@@ -1619,6 +1623,7 @@ function renderCfSummaryM() {
           <button class="cfs-tab ${mCfPhase==='grace'?'active':''}" onclick="setCfPhase('grace')">${t('badge_grace')}</button>
           <button class="cfs-tab ${mCfPhase==='repay'?'active':''}" onclick="setCfPhase('repay')">${t('badge_repay')}</button>
         </div>
+        ${mCfPhase==='grace' && mCfData.graceNote ? `<div class="cfs-grace-note">🕓 ${mCfData.graceNote}</div>` : ''}
         <div class="cfs-bars">
           <div class="cfs-baseline" style="bottom:${base}px;"></div>
           <div class="cfs-col">${divBar}</div>
@@ -1911,6 +1916,28 @@ function switchTab(tab) {
   }, 50);
 }
 
+// 逐年攤還：回傳 {int:[], prin:[]}（每年利息、本金），供走勢圖彙整各卡
+function yearlyAmort(amount, rate, years, graceYears, graceRate) {
+  const out = { int: [], prin: [] };
+  if (!(amount > 0) || !(years > 0)) return out;
+  const n = Math.round(years * 12), gm = Math.round((graceYears || 0) * 12);
+  const gRate = (graceRate != null ? graceRate : rate);
+  const repayMo = Math.max(1, n - gm);
+  const pay = pmt(amount, rate / 12, repayMo);
+  let bal = amount;
+  for (let i = 1; i <= n; i++) {
+    const isG = i <= gm;
+    const it = bal * (isG ? gRate : rate) / 12;
+    let pr = 0;
+    if (!isG) pr = Math.min(pay - it, bal);
+    bal = Math.max(0, bal - pr);
+    const y = Math.floor((i - 1) / 12);
+    out.int[y]  = (out.int[y]  || 0) + it;
+    out.prin[y] = (out.prin[y] || 0) + pr;
+  }
+  return out;
+}
+
 // ─── 房貸方案 ─────────────────────────────────────────────────────────────
 function calcMortgage() {
   const origLoan   = v('m_loan');
@@ -2106,11 +2133,18 @@ function calcMortgage() {
   document.getElementById('m_amort_body').innerHTML = rows;
 
   // ── Chart + Sensitivity ──────────────────────────────────────────────────
-  const chartYears = Math.max(1, Math.round(useOrig ? years : horizonMonths / 12));
-  const yLabels = Array.from({length: chartYears}, (_, i) => lang === 'zh' ? `${i+1}` : `${i+1}`);
-  const intD  = yLabels.map((_, i) => Math.round(yrInt[i]  || 0));
-  const prinD = yLabels.map((_, i) => Math.round(yrPrin[i] || 0));
-  const divD  = yLabels.map((_, i) => Math.round(yrDiv[i]  || (monthlyDiv * 12)));
+  // 走勢圖彙整四項：原貸/增額（已在 yrInt/yrPrin）＋ 資產借出（純利息）＋ 預計新購屋（本利攤）
+  const assetAmtC  = v('m_asset_amt');
+  const assetYrInt = assetAmtC * (v('m_asset_rate') / 100);   // 資產借出每年利息（持續性）
+  const nhLoanC    = v('n_price') * (v('n_ltv') / 100);
+  const nhYearsC   = v('n_years') || 30;
+  const nhY = yearlyAmort(nhLoanC, v('n_rate') / 100, nhYearsC, v('n_grace'), (v('n_grace_rate') || v('n_rate')) / 100);
+  const mortgageYears = Math.round(useOrig ? years : horizonMonths / 12);
+  const chartYears = Math.max(1, mortgageYears, nhLoanC > 0 ? Math.round(nhYearsC) : 0);
+  const yLabels = Array.from({length: chartYears}, (_, i) => `${i+1}`);
+  const intD  = yLabels.map((_, i) => Math.round((yrInt[i]  || 0) + (nhY.int[i]  || 0) + (assetAmtC > 0 ? assetYrInt : 0)));
+  const prinD = yLabels.map((_, i) => Math.round((yrPrin[i] || 0) + (nhY.prin[i] || 0)));
+  const divD  = yLabels.map(() => Math.round(monthlyDiv * 12));
   mChart = renderAnnualCashflowChart('m_cashflow_chart', mChart, yLabels, divD, intD, prinD);
   renderMortgageSens(totalLoan, horizonMonths, monthlyDiv, v('m_addl_rate') || v('m_new_rate'));
 
@@ -2135,8 +2169,20 @@ function calcMortgage() {
   if (assetPayM > 0) { payPartsG.push(`${tag(CODE.assetMonthInt)}${noIcon(t('asset_title'))} $${fmt(assetPayM)}`); payPartsR.push(`${tag(CODE.assetMonthInt)}${noIcon(t('asset_title'))} $${fmt(assetPayM)}`); }
   if (nhGracePayCF > 0) payPartsG.push(`${tag(CODE.nhGracePay)}${noIcon(t('nh_title'))} $${fmt(nhGracePayCF)}`);
   if (nhRepayPayCF > 0) payPartsR.push(`${tag(CODE.nhRepayPay)}${noIcon(t('nh_title'))} $${fmt(nhRepayPayCF)}`);
+  // 寬限期說明：列出各卡寬限期年限並取較小者
+  const graceCands = [];
+  if (gracYears > 0) graceCands.push({ code: 'A3', y: gracYears });
+  if (nhLoanC > 0 && v('n_grace') > 0) graceCands.push({ code: 'E3', y: v('n_grace') });
+  let graceNote = '';
+  if (graceCands.length) {
+    const mn = graceCands.reduce((a, b) => (b.y < a.y ? b : a));
+    const parts = graceCands.map(gp => `${gp.code} ${gp.y}${t('unit_yr')}`).join('、');
+    graceNote = graceCands.length > 1
+      ? `${parts} → ${t('cfs_take_min')} ${mn.y}${t('unit_yr')}`
+      : `${t('cfs_grace_years')} ${mn.y}${t('unit_yr')}（${mn.code}）`;
+  }
   mCfData = { monthlyDiv, gracePay: cfGracePay, repayPay: cfRepayPay,
-              divBreak, payBreakG: join(payPartsG), payBreakR: join(payPartsR) };
+              divBreak, payBreakG: join(payPartsG), payBreakR: join(payPartsR), graceNote };
   renderCfSummaryM();
 }
 
